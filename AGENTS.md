@@ -82,6 +82,8 @@ Checks:
 Goal: keep the Next app stable, deployable, and easy to extend.
 
 Checks:
+- In Next.js, keep files under 100 lines whenever possible; split components,
+  hooks, data, helpers, and styles as soon as a file grows beyond that.
 - BEM classes use the essential prefixes first: `p-` for pages and `c-` for components.
 - SCSS selectors write the full class name; avoid `&__element` shortcuts.
 - Client APIs are behind hooks and never called from server components.

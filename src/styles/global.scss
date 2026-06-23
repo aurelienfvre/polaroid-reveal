@@ -3,8 +3,15 @@
 @use "./03-generic/reset";
 @use "./03-generic/base";
 @use "./04-components/c-button";
+@use "./04-components/c-canvas-photo";
+@use "./04-components/c-canvas-photo-tones";
+@use "./04-components/c-memory-canvas";
 @use "./04-components/c-memory-controls";
 @use "./04-components/c-polaroid-card";
+@use "./04-components/c-polaroid-card-image";
+@use "./04-components/c-polaroid-card-tones";
+@use "./04-components/c-polaroid-camera";
+@use "./04-components/c-polaroid-camera-immersive";
 @use "./04-components/c-reveal-board";
 @use "./04-components/c-reveal-roadmap";
 @use "./04-components/c-sensor-panel";

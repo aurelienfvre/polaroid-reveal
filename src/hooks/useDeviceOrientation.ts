@@ -1,23 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { requestDeviceMotionAccess } from "@/lib/gyroscope/deviceMotionPermissions";
+import type {
+  DeviceAcceleration,
+  DeviceOrientationPermissionState,
+  DeviceTilt,
+} from "@/lib/gyroscope/deviceMotionTypes";
+import { getShakeSignal } from "@/lib/gyroscope/deviceShake";
+import type { MotionProgressHandler } from "@/lib/motion/motionProgress";
 
-type DeviceOrientationPermissionState =
-  | "idle"
-  | "unsupported"
-  | "prompt"
-  | "granted"
-  | "denied";
-
-type DeviceOrientationEventWithPermission = typeof DeviceOrientationEvent & {
-  requestPermission?: () => Promise<PermissionState>;
-};
-
-export type DeviceTilt = {
-  alpha: number | null;
-  beta: number | null;
-  gamma: number | null;
-};
+export type { DeviceTilt } from "@/lib/gyroscope/deviceMotionTypes";
 
 const EMPTY_TILT: DeviceTilt = {
   alpha: null,
@@ -25,44 +18,26 @@ const EMPTY_TILT: DeviceTilt = {
   gamma: null,
 };
 
-export function useDeviceOrientation() {
+const MIN_SHAKE_ENERGY = 1.6;
+const SHAKE_ENERGY_STEP = 11.5;
+const SENSOR_PROGRESS_STEP = 0.065;
+const SENSOR_PROGRESS_COOLDOWN_MS = 180;
+
+export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
   const [orientation, setOrientation] = useState<DeviceTilt>(EMPTY_TILT);
   const [permissionState, setPermissionState] =
     useState<DeviceOrientationPermissionState>("idle");
   const [isListening, setIsListening] = useState(false);
+  const lastAccelerationRef = useRef<DeviceAcceleration | null>(null);
+  const lastGravityAccelerationRef = useRef<DeviceAcceleration | null>(null);
+  const pendingShakeEnergyRef = useRef(0);
+  const lastSensorProgressAtRef = useRef(0);
   const isSupported = permissionState !== "unsupported";
 
-  const requestAccess = useCallback(async () => {
-    if (typeof window === "undefined" || !("DeviceOrientationEvent" in window)) {
-      setPermissionState("unsupported");
-      return false;
-    }
-
-    const orientationEvent =
-      window.DeviceOrientationEvent as DeviceOrientationEventWithPermission;
-
-    if (typeof orientationEvent.requestPermission === "function") {
-      try {
-        const result = await orientationEvent.requestPermission();
-        const granted = result === "granted";
-
-        setPermissionState(granted ? "granted" : "denied");
-        setIsListening(granted);
-
-        return granted;
-      } catch {
-        setPermissionState("denied");
-        setIsListening(false);
-
-        return false;
-      }
-    }
-
-    setPermissionState("granted");
-    setIsListening(true);
-
-    return true;
-  }, []);
+  const requestAccess = useCallback(
+    () => requestDeviceMotionAccess(setPermissionState, setIsListening),
+    [],
+  );
 
   useEffect(() => {
     if (!isListening) {
@@ -77,17 +52,48 @@ export function useDeviceOrientation() {
       });
     };
 
+    const handleMotion = (event: DeviceMotionEvent) => {
+      const signal = getShakeSignal(
+        event,
+        lastAccelerationRef.current,
+        lastGravityAccelerationRef.current,
+      );
+
+      lastAccelerationRef.current = signal.acceleration;
+      lastGravityAccelerationRef.current = signal.gravityAcceleration;
+
+      if (signal.energy < MIN_SHAKE_ENERGY) {
+        return;
+      }
+
+      pendingShakeEnergyRef.current += Math.min(signal.energy, SHAKE_ENERGY_STEP);
+
+      if (
+        pendingShakeEnergyRef.current < SHAKE_ENERGY_STEP ||
+        event.timeStamp - lastSensorProgressAtRef.current <
+          SENSOR_PROGRESS_COOLDOWN_MS
+      ) {
+        return;
+      }
+
+      pendingShakeEnergyRef.current -= SHAKE_ENERGY_STEP;
+      lastSensorProgressAtRef.current = event.timeStamp;
+      onMotionProgress?.(SENSOR_PROGRESS_STEP, {
+        x: signal.direction.x,
+        y: signal.direction.y,
+        force: Math.min(1 + signal.energy / SHAKE_ENERGY_STEP, 2.4),
+        source: "motion",
+      });
+    };
+
     window.addEventListener("deviceorientation", handleOrientation);
+    window.addEventListener("devicemotion", handleMotion);
 
     return () => {
       window.removeEventListener("deviceorientation", handleOrientation);
+      window.removeEventListener("devicemotion", handleMotion);
     };
-  }, [isListening]);
+  }, [isListening, onMotionProgress]);
 
-  return {
-    orientation,
-    permissionState,
-    isSupported,
-    requestAccess,
-  };
+  return { orientation, permissionState, isSupported, requestAccess };
 }
