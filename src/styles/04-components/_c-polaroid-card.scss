@@ -30,6 +30,7 @@
 
 .c-polaroid-card--is-active {
   z-index: 2;
+  opacity: 1;
   pointer-events: auto;
 }
 
@@ -63,92 +64,6 @@
   will-change: transform;
 }
 
-.c-polaroid-card__image {
-  position: relative;
-  min-height: 19rem;
-  overflow: hidden;
-  border-radius: var(--radius-sm);
-  background:
-    linear-gradient(145deg, rgb(255 255 255 / 0%), rgb(36 31 33 / 18%)),
-    var(--color-cyan);
-  filter:
-    blur(var(--reveal-blur))
-    grayscale(var(--reveal-grayscale))
-    brightness(var(--reveal-brightness));
-  opacity: var(--reveal-opacity);
-  transition:
-    filter 260ms ease,
-    opacity 260ms ease;
-}
-
-.c-polaroid-card--tone-cyan .c-polaroid-card__image {
-  background:
-    linear-gradient(145deg, rgb(255 255 255 / 0%), rgb(36 31 33 / 18%)),
-    linear-gradient(135deg, var(--color-cyan), var(--color-mint));
-}
-
-.c-polaroid-card--tone-rose .c-polaroid-card__image {
-  background:
-    linear-gradient(145deg, rgb(255 255 255 / 0%), rgb(36 31 33 / 18%)),
-    linear-gradient(135deg, var(--color-rose), #ffc5d2 48%, var(--color-amber));
-}
-
-.c-polaroid-card--tone-amber .c-polaroid-card__image {
-  background:
-    linear-gradient(145deg, rgb(255 255 255 / 0%), rgb(36 31 33 / 18%)),
-    linear-gradient(135deg, var(--color-amber), #fff3a0 40%, var(--color-mint));
-}
-
-.c-polaroid-card--is-revealed .c-polaroid-card__image {
-  filter: blur(0) grayscale(0) brightness(1);
-  opacity: 1;
-}
-
-.c-polaroid-card__image::before {
-  position: absolute;
-  inset: 12% 10% auto;
-  height: 44%;
-  border-radius: 50%;
-  background: rgb(255 255 255 / 24%);
-  content: "";
-  filter: blur(22px);
-}
-
-.c-polaroid-card__image::after {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 30% 20%, rgb(255 255 255 / 70%), transparent 34%),
-    linear-gradient(120deg, transparent 0 36%, rgb(255 247 202 / 48%) 48%, transparent 64%);
-  content: "";
-  opacity: var(--develop-flash-opacity);
-  mix-blend-mode: screen;
-  pointer-events: none;
-}
-
-.c-polaroid-card__light-leak {
-  position: absolute;
-  inset: calc(-24% + var(--motion-light-y)) auto auto
-    calc(-16% + var(--motion-light-x));
-  width: 54%;
-  aspect-ratio: 1;
-  border-radius: 999px;
-  background: rgb(255 225 91 / 58%);
-  filter: blur(20px);
-  opacity: calc(0.36 + var(--develop-flash-opacity));
-}
-
-.c-polaroid-card__grain {
-  position: absolute;
-  inset: 0;
-  opacity: calc(0.36 + var(--develop-flash-opacity));
-  background-image:
-    radial-gradient(circle at 20% 20%, rgb(255 255 255 / 35%) 0 1px, transparent 1px),
-    radial-gradient(circle at 80% 60%, rgb(36 31 33 / 18%) 0 1px, transparent 1px);
-  background-size: 9px 9px, 13px 13px;
-  mix-blend-mode: soft-light;
-}
-
 .c-polaroid-card__body {
   display: grid;
   gap: var(--space-2);
@@ -176,9 +91,5 @@
 @media (max-width: 720px) {
   .c-polaroid-card__paper {
     min-height: 28rem;
-  }
-
-  .c-polaroid-card__image {
-    min-height: 16rem;
   }
 }

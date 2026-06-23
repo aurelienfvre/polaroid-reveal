@@ -1,0 +1,17 @@
+.c-canvas-photo--tone-cyan .c-canvas-photo__image {
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0%), rgb(36 31 33 / 16%)),
+    linear-gradient(135deg, var(--color-cyan), var(--color-mint));
+}
+
+.c-canvas-photo--tone-rose .c-canvas-photo__image {
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0%), rgb(36 31 33 / 16%)),
+    linear-gradient(135deg, var(--color-rose), #ffc5d2 48%, var(--color-amber));
+}
+
+.c-canvas-photo--tone-amber .c-canvas-photo__image {
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0%), rgb(36 31 33 / 16%)),
+    linear-gradient(135deg, var(--color-amber), #fff3a0 40%, var(--color-mint));
+}

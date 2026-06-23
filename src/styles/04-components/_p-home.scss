@@ -5,10 +5,17 @@
 }
 
 .p-home__experience {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.7fr);
+  grid-template-columns: 1fr;
   gap: clamp(1rem, 4vw, 2rem);
   align-items: stretch;
+}
+
+.p-home__experience--is-camera,
+.p-home__experience--is-develop {
+  grid-template-columns: 1fr;
+  min-height: calc(100dvh - clamp(2rem, 8vw, 6rem));
 }
 
 .p-home__stage {
@@ -64,10 +71,6 @@
 @media (max-width: 920px) {
   .p-home__experience {
     grid-template-columns: 1fr;
-  }
-
-  .p-home__panel {
-    order: -1;
   }
 }
 
