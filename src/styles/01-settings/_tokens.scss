@@ -1,0 +1,23 @@
+:root {
+  --color-paper: #f7f4ed;
+  --color-paper-soft: #fffdf7;
+  --color-ink: #241f21;
+  --color-ink-muted: #6f6665;
+  --color-line: #ded6cc;
+  --color-cyan: #83dde8;
+  --color-rose: #f06a8a;
+  --color-amber: #ffe15b;
+  --color-mint: #9be5bd;
+  --shadow-soft: 0 18px 54px rgb(36 31 33 / 14%);
+  --shadow-card: 0 14px 32px rgb(36 31 33 / 18%);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --font-body: var(--font-geist-sans), Inter, system-ui, sans-serif;
+}

@@ -1,0 +1,14 @@
+.c-status-pill {
+  position: absolute;
+  z-index: 1;
+  top: var(--space-4);
+  left: var(--space-4);
+  border-radius: 999px;
+  padding: 0.45rem 0.75rem;
+  color: var(--color-ink);
+  background: var(--color-amber);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}

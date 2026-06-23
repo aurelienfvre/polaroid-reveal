@@ -1,0 +1,24 @@
+body {
+  min-height: 100%;
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at 1px 1px, rgb(36 31 33 / 12%) 1px, transparent 0)
+      0 0 / 22px 22px,
+    var(--color-paper);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricprecision;
+}
+
+a {
+  color: inherit;
+}
+
+svg {
+  flex: 0 0 auto;
+}
+
+::selection {
+  color: var(--color-ink);
+  background: var(--color-amber);
+}

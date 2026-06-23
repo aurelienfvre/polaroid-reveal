@@ -1,0 +1,38 @@
+.c-reveal-board {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: min(78vh, 42rem);
+  border: 1px solid rgb(36 31 33 / 10%);
+  border-radius: var(--radius-md);
+  padding: clamp(1rem, 4vw, 3rem);
+  background:
+    linear-gradient(120deg, rgb(255 253 247 / 82%), rgb(255 253 247 / 58%)),
+    radial-gradient(circle at 12% 18%, rgb(240 106 138 / 18%), transparent 32%),
+    radial-gradient(circle at 82% 10%, rgb(131 221 232 / 22%), transparent 28%);
+  box-shadow: var(--shadow-soft);
+  transform:
+    perspective(900px)
+    rotateX(var(--motion-depth-y))
+    rotateY(var(--motion-depth-x));
+  transition: transform 180ms ease-out;
+  will-change: transform;
+}
+
+.c-reveal-board::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    linear-gradient(rgb(36 31 33 / 4%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(36 31 33 / 4%) 1px, transparent 1px);
+  background-size: 42px 42px;
+  content: "";
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .c-reveal-board {
+    min-height: 35rem;
+  }
+}

@@ -1,0 +1,45 @@
+.c-reveal-roadmap {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+.c-reveal-roadmap__item {
+  display: grid;
+  align-content: space-between;
+  min-height: 8rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  background: var(--color-paper-soft);
+}
+
+.c-reveal-roadmap__index {
+  color: var(--color-rose);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.c-reveal-roadmap__label {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+@media (max-width: 920px) {
+  .c-reveal-roadmap {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .c-reveal-roadmap {
+    grid-template-columns: 1fr;
+  }
+
+  .c-reveal-roadmap__item {
+    min-height: 5rem;
+  }
+}
