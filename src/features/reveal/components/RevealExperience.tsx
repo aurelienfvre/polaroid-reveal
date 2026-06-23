@@ -39,6 +39,7 @@ export function RevealExperience() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [revealProgress, setRevealProgress] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
+  const polaroidMotionRef = useRef<HTMLDivElement>(null);
   const revealProgressRef = useRef(0);
   const hasTriggeredRevealHapticRef = useRef(false);
   const { trigger } = useWebHaptics();
@@ -47,9 +48,9 @@ export function RevealExperience() {
 
   const playDevelopmentImpulse = useCallback(
     (amount: number, impulse?: MotionImpulse) => {
-      const stage = stageRef.current;
+      const motionTarget = polaroidMotionRef.current;
 
-      if (!stage) {
+      if (!motionTarget) {
         return;
       }
 
@@ -66,11 +67,11 @@ export function RevealExperience() {
           directionY * gsap.utils.random(-1.2, 1.2)) *
         force;
 
-      gsap.killTweensOf(stage);
+      gsap.killTweensOf(motionTarget);
       gsap
         .timeline()
         .to(
-          stage,
+          motionTarget,
           {
             "--shake-x": `${shakeX}px`,
             "--shake-y": `${shakeY}px`,
@@ -81,7 +82,7 @@ export function RevealExperience() {
           },
           0,
         )
-        .to(stage, {
+        .to(motionTarget, {
           "--shake-x": `${shakeX * -0.46}px`,
           "--shake-y": `${shakeY * -0.34}px`,
           "--shake-rotate": `${shakeRotate * -0.52}deg`,
@@ -89,13 +90,13 @@ export function RevealExperience() {
           duration: 0.12,
           ease: "sine.inOut",
         })
-        .to(stage, {
+        .to(motionTarget, {
           "--develop-flash-opacity": 0,
           duration: 0.18,
           ease: "power2.out",
         })
         .to(
-          stage,
+          motionTarget,
           {
             "--shake-x": "0px",
             "--shake-y": "0px",
@@ -135,6 +136,7 @@ export function RevealExperience() {
     stageRef,
     deviceProfile.inputMode !== "motion" && !isRevealed,
     developMemory,
+    polaroidMotionRef,
   );
 
   const interactionTilt = useMemo(() => {
@@ -164,31 +166,34 @@ export function RevealExperience() {
   };
 
   useEffect(() => {
-    if (!stageRef.current || deviceOrientation.permissionState !== "granted") {
+    if (
+      !polaroidMotionRef.current ||
+      deviceOrientation.permissionState !== "granted"
+    ) {
       return;
     }
 
-    stageRef.current.style.setProperty(
+    polaroidMotionRef.current.style.setProperty(
       "--motion-depth-x",
       `${interactionTilt.x * 20}deg`,
     );
-    stageRef.current.style.setProperty(
+    polaroidMotionRef.current.style.setProperty(
       "--motion-depth-y",
       `${interactionTilt.y * -16}deg`,
     );
-    stageRef.current.style.setProperty(
+    polaroidMotionRef.current.style.setProperty(
       "--motion-image-x",
       `${interactionTilt.x * 44}px`,
     );
-    stageRef.current.style.setProperty(
+    polaroidMotionRef.current.style.setProperty(
       "--motion-image-y",
       `${interactionTilt.y * 34}px`,
     );
-    stageRef.current.style.setProperty(
+    polaroidMotionRef.current.style.setProperty(
       "--motion-light-x",
       `${interactionTilt.x * 58}px`,
     );
-    stageRef.current.style.setProperty(
+    polaroidMotionRef.current.style.setProperty(
       "--motion-light-y",
       `${interactionTilt.y * 44}px`,
     );
@@ -244,7 +249,7 @@ export function RevealExperience() {
     hasTriggeredRevealHapticRef.current = false;
     setRevealProgress(0);
     pointerTilt.resetPointerTilt();
-    gsap.set(stageRef.current, {
+    gsap.set(polaroidMotionRef.current, {
       "--shake-x": "0px",
       "--shake-y": "0px",
       "--shake-rotate": "0deg",
@@ -275,7 +280,6 @@ export function RevealExperience() {
         <div
           className="p-home__stage"
           ref={stageRef}
-          style={tiltStyle}
         >
           <div className="c-reveal-board">
             <div className="c-status-pill">
@@ -312,7 +316,11 @@ export function RevealExperience() {
 
                 return (
                   <article className={cardClassName} key={memory.id}>
-                    <div className="c-polaroid-card__paper">
+                    <div
+                      className="c-polaroid-card__paper"
+                      ref={index === activeIndex ? polaroidMotionRef : undefined}
+                      style={index === activeIndex ? tiltStyle : undefined}
+                    >
                       <div className="c-polaroid-card__image">
                         <span className="c-polaroid-card__light-leak" />
                         <span className="c-polaroid-card__grain" />

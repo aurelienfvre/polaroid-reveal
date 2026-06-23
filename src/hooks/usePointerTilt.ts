@@ -30,6 +30,7 @@ export function usePointerTilt(
   targetRef: RefObject<HTMLElement | null>,
   isEnabled: boolean,
   onMotionProgress?: MotionProgressHandler,
+  motionTargetRef?: RefObject<HTMLElement | null>,
 ) {
   const lastPositionRef = useRef<{ x: number; y: number } | null>(null);
   const pendingDistanceRef = useRef(0);
@@ -42,21 +43,24 @@ export function usePointerTilt(
       return;
     }
 
+    const getMotionTarget = () => motionTargetRef?.current ?? target;
+
     const handlePointerMove = (event: PointerEvent) => {
       if (event.pointerType === "touch") {
         return;
       }
 
+      const motionTarget = getMotionTarget();
       const bounds = target.getBoundingClientRect();
 
-      if (!bounds.width || !bounds.height) {
+      if (!motionTarget || !bounds.width || !bounds.height) {
         return;
       }
 
       const x = ((event.clientX - bounds.left) / bounds.width - 0.5) * 2;
       const y = ((event.clientY - bounds.top) / bounds.height - 0.5) * 2;
 
-      writeTiltProperties(target, {
+      writeTiltProperties(motionTarget, {
         x: clamp(x),
         y: clamp(y),
       });
@@ -97,9 +101,14 @@ export function usePointerTilt(
     };
 
     const resetPointer = () => {
+      const motionTarget = getMotionTarget();
+
       lastPositionRef.current = null;
       pendingDistanceRef.current = 0;
-      writeTiltProperties(target, { x: 0, y: 0 });
+
+      if (motionTarget) {
+        writeTiltProperties(motionTarget, { x: 0, y: 0 });
+      }
     };
 
     window.addEventListener("pointermove", handlePointerMove);
@@ -111,14 +120,16 @@ export function usePointerTilt(
       window.removeEventListener("pointerleave", resetPointer);
       window.removeEventListener("blur", resetPointer);
     };
-  }, [isEnabled, onMotionProgress, targetRef]);
+  }, [isEnabled, motionTargetRef, onMotionProgress, targetRef]);
 
   return {
     resetPointerTilt: () => {
       lastPositionRef.current = null;
       pendingDistanceRef.current = 0;
-      if (targetRef.current) {
-        writeTiltProperties(targetRef.current, { x: 0, y: 0 });
+      const motionTarget = motionTargetRef?.current ?? targetRef.current;
+
+      if (motionTarget) {
+        writeTiltProperties(motionTarget, { x: 0, y: 0 });
       }
     },
   };

@@ -7,6 +7,21 @@
 }
 
 .c-polaroid-card {
+  --motion-depth-x: 0deg;
+  --motion-depth-y: 0deg;
+  --motion-image-x: 0px;
+  --motion-image-y: 0px;
+  --motion-light-x: 0px;
+  --motion-light-y: 0px;
+  --reveal-blur: 18px;
+  --reveal-grayscale: 1;
+  --reveal-brightness: 1.25;
+  --reveal-opacity: 0.48;
+  --shake-x: 0px;
+  --shake-y: 0px;
+  --shake-rotate: 0deg;
+  --develop-flash-opacity: 0;
+
   position: absolute;
   width: min(76vw, 22rem);
   opacity: 0;
@@ -34,11 +49,14 @@
     var(--color-paper-soft);
   box-shadow: var(--shadow-card);
   transform:
+    perspective(900px)
     translate3d(
       calc(var(--motion-image-x) + var(--shake-x)),
       calc(var(--motion-image-y) + var(--shake-y)),
       0
     )
+    rotateX(var(--motion-depth-y))
+    rotateY(var(--motion-depth-x))
     rotate(var(--shake-rotate));
   transform-origin: 50% 82%;
   transition: transform 140ms ease-out;

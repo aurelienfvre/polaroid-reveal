@@ -11,12 +11,6 @@
     radial-gradient(circle at 12% 18%, rgb(240 106 138 / 18%), transparent 32%),
     radial-gradient(circle at 82% 10%, rgb(131 221 232 / 22%), transparent 28%);
   box-shadow: var(--shadow-soft);
-  transform:
-    perspective(900px)
-    rotateX(var(--motion-depth-y))
-    rotateY(var(--motion-depth-x));
-  transition: transform 180ms ease-out;
-  will-change: transform;
 }
 
 .c-reveal-board::after {
