@@ -13,6 +13,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { usePointerTilt } from "@/hooks/usePointerTilt";
 import { normalizeTilt } from "@/lib/gyroscope/normalizeTilt";
 import { HAPTIC_EVENTS } from "@/lib/haptics/hapticEvents";
+import type { MotionImpulse } from "@/lib/motion/motionProgress";
 
 gsap.registerPlugin(useGSAP);
 
@@ -28,6 +29,10 @@ type TiltStyle = CSSProperties & {
   "--reveal-grayscale": number;
   "--reveal-brightness": number;
   "--reveal-opacity": number;
+  "--shake-x": string;
+  "--shake-y": string;
+  "--shake-rotate": string;
+  "--develop-flash-opacity": number;
 };
 
 export function RevealExperience() {
@@ -40,13 +45,78 @@ export function RevealExperience() {
 
   const isRevealed = revealProgress >= 1;
 
-  const developMemory = useCallback((amount: number) => {
+  const playDevelopmentImpulse = useCallback(
+    (amount: number, impulse?: MotionImpulse) => {
+      const stage = stageRef.current;
+
+      if (!stage) {
+        return;
+      }
+
+      const rawX = impulse?.x ?? Math.random() * 2 - 1;
+      const rawY = impulse?.y ?? Math.random() * 2 - 1;
+      const directionLength = Math.max(Math.hypot(rawX, rawY), 0.2);
+      const directionX = rawX / directionLength;
+      const directionY = rawY / directionLength;
+      const force = Math.min(Math.max(impulse?.force ?? amount * 16, 0.7), 2.1);
+      const shakeX = directionX * gsap.utils.random(10, 18) * force;
+      const shakeY = directionY * gsap.utils.random(5, 12) * force;
+      const shakeRotate =
+        (-directionX * gsap.utils.random(2.2, 4.5) +
+          directionY * gsap.utils.random(-1.2, 1.2)) *
+        force;
+
+      gsap.killTweensOf(stage);
+      gsap
+        .timeline()
+        .to(
+          stage,
+          {
+            "--shake-x": `${shakeX}px`,
+            "--shake-y": `${shakeY}px`,
+            "--shake-rotate": `${shakeRotate}deg`,
+            "--develop-flash-opacity": Math.min(0.14 + amount * 1.8, 0.36),
+            duration: 0.08,
+            ease: "power2.out",
+          },
+          0,
+        )
+        .to(stage, {
+          "--shake-x": `${shakeX * -0.46}px`,
+          "--shake-y": `${shakeY * -0.34}px`,
+          "--shake-rotate": `${shakeRotate * -0.52}deg`,
+          "--develop-flash-opacity": 0.08,
+          duration: 0.12,
+          ease: "sine.inOut",
+        })
+        .to(stage, {
+          "--develop-flash-opacity": 0,
+          duration: 0.18,
+          ease: "power2.out",
+        })
+        .to(
+          stage,
+          {
+            "--shake-x": "0px",
+            "--shake-y": "0px",
+            "--shake-rotate": "0deg",
+            duration: 0.44,
+            ease: "elastic.out(1, 0.46)",
+          },
+          "<",
+        );
+    },
+    [],
+  );
+
+  const developMemory = useCallback((amount: number, impulse?: MotionImpulse) => {
     const nextProgress = Math.min(revealProgressRef.current + amount, 1);
 
     if (nextProgress === revealProgressRef.current) {
       return;
     }
 
+    playDevelopmentImpulse(amount, impulse);
     revealProgressRef.current = nextProgress;
     setRevealProgress(nextProgress);
 
@@ -56,7 +126,7 @@ export function RevealExperience() {
         () => undefined,
       );
     }
-  }, [trigger]);
+  }, [playDevelopmentImpulse, trigger]);
 
   const deviceProfile = useDeviceProfile();
   const deviceOrientation = useDeviceOrientation(developMemory);
@@ -87,6 +157,10 @@ export function RevealExperience() {
     "--reveal-grayscale": 1 - revealProgress,
     "--reveal-brightness": 1.25 - revealProgress * 0.25,
     "--reveal-opacity": 0.48 + revealProgress * 0.52,
+    "--shake-x": "0px",
+    "--shake-y": "0px",
+    "--shake-rotate": "0deg",
+    "--develop-flash-opacity": 0,
   };
 
   useEffect(() => {
@@ -94,8 +168,8 @@ export function RevealExperience() {
       return;
     }
 
-      stageRef.current.style.setProperty(
-        "--motion-depth-x",
+    stageRef.current.style.setProperty(
+      "--motion-depth-x",
       `${interactionTilt.x * 20}deg`,
     );
     stageRef.current.style.setProperty(
@@ -158,7 +232,11 @@ export function RevealExperience() {
       return;
     }
 
-    developMemory(0.16);
+    developMemory(0.12, {
+      x: Math.random() * 2 - 1,
+      y: Math.random() * 2 - 1,
+      force: 1,
+    });
   };
 
   const handleReroll = () => {
@@ -166,6 +244,12 @@ export function RevealExperience() {
     hasTriggeredRevealHapticRef.current = false;
     setRevealProgress(0);
     pointerTilt.resetPointerTilt();
+    gsap.set(stageRef.current, {
+      "--shake-x": "0px",
+      "--shake-y": "0px",
+      "--shake-rotate": "0deg",
+      "--develop-flash-opacity": 0,
+    });
     setActiveIndex((currentIndex) => (currentIndex + 1) % MEMORIES.length);
     trigger(HAPTIC_EVENTS.snap, { intensity: 0.42 })?.catch(() => undefined);
   };
@@ -195,8 +279,14 @@ export function RevealExperience() {
         >
           <div className="c-reveal-board">
             <div className="c-status-pill">
-              <span className="c-status-pill__label">Developpement</span>
-              <span className="c-status-pill__meter">
+              <span className="c-status-pill__label">Developpement photo</span>
+              <span
+                className="c-status-pill__meter"
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(revealProgress * 100)}
+              >
                 <span
                   className="c-status-pill__meter-fill"
                   style={{ width: `${Math.round(revealProgress * 100)}%` }}
@@ -236,8 +326,8 @@ export function RevealExperience() {
                           {isRevealed && index === activeIndex
                             ? memory.caption
                             : revealProgress > 0
-                              ? "Continue de remuer la photo, l'image remonte doucement."
-                              : "Remue la photo pour lancer le developpement."}
+                              ? "Continue de remuer plusieurs fois, l'image remonte doucement."
+                              : "Remue plusieurs fois pour lancer le developpement."}
                         </p>
                       </div>
                     </div>
@@ -268,7 +358,7 @@ export function RevealExperience() {
               {deviceProfile.inputMode === "motion" &&
               deviceOrientation.permissionState !== "granted"
                 ? "Autoriser le mouvement"
-                : "Aider le developpement"}
+                : "Aider un peu le developpement"}
             </button>
             <button
               className="c-button c-button--ghost"
@@ -288,9 +378,9 @@ export function RevealExperience() {
                 <small>
                   {deviceProfile.inputMode === "motion"
                     ? deviceOrientation.permissionState === "granted"
-                      ? "remue le telephone plusieurs fois"
+                      ? "secoue ou incline le telephone plusieurs fois"
                       : `${deviceProfile.label} - autorisation requise`
-                    : `${deviceProfile.label} - remue avec la souris`}
+                    : `${deviceProfile.label} - remue avec la souris ou le trackpad`}
                 </small>
               </span>
             </div>
