@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { RefObject } from "react";
 
 export type NormalizedTilt = {
@@ -24,8 +24,10 @@ function writeTiltProperties(element: HTMLElement, tilt: NormalizedTilt) {
 export function usePointerTilt(
   targetRef: RefObject<HTMLElement | null>,
   isEnabled: boolean,
-  onMotionIntent?: () => void,
+  onMotionProgress?: (amount: number) => void,
 ) {
+  const lastPositionRef = useRef<{ x: number; y: number } | null>(null);
+
   useEffect(() => {
     const target = targetRef.current;
 
@@ -48,12 +50,23 @@ export function usePointerTilt(
         y: clamp(y),
       });
 
-      if (Math.hypot(x, y) > 0.22) {
-        onMotionIntent?.();
+      const lastPosition = lastPositionRef.current;
+      const distance = lastPosition
+        ? Math.hypot(event.clientX - lastPosition.x, event.clientY - lastPosition.y)
+        : 0;
+
+      lastPositionRef.current = {
+        x: event.clientX,
+        y: event.clientY,
+      };
+
+      if (distance > 8) {
+        onMotionProgress?.(Math.min(distance / 900, 0.08));
       }
     };
 
     const handleMouseLeave = () => {
+      lastPositionRef.current = null;
       writeTiltProperties(target, { x: 0, y: 0 });
     };
 
@@ -64,7 +77,7 @@ export function usePointerTilt(
       target.removeEventListener("mousemove", handleMouseMove);
       target.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [isEnabled, onMotionIntent, targetRef]);
+  }, [isEnabled, onMotionProgress, targetRef]);
 
   return {
     resetPointerTilt: () => {

@@ -46,11 +46,14 @@
   background:
     linear-gradient(145deg, rgb(255 255 255 / 0%), rgb(36 31 33 / 18%)),
     var(--color-cyan);
-  filter: blur(18px) grayscale(1) brightness(1.25);
-  opacity: 0.48;
+  filter:
+    blur(var(--reveal-blur))
+    grayscale(var(--reveal-grayscale))
+    brightness(var(--reveal-brightness));
+  opacity: var(--reveal-opacity);
   transition:
-    filter 1200ms ease,
-    opacity 1200ms ease;
+    filter 260ms ease,
+    opacity 260ms ease;
 }
 
 .c-polaroid-card--tone-cyan .c-polaroid-card__image {

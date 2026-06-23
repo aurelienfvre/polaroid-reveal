@@ -3,12 +3,34 @@
   z-index: 1;
   top: var(--space-4);
   left: var(--space-4);
+  display: grid;
+  gap: 0.35rem;
+  min-width: 10rem;
   border-radius: 999px;
-  padding: 0.45rem 0.75rem;
+  padding: 0.55rem 0.75rem;
   color: var(--color-ink);
   background: var(--color-amber);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.03em;
   text-transform: uppercase;
+}
+
+.c-status-pill__label {
+  line-height: 1;
+}
+
+.c-status-pill__meter {
+  overflow: hidden;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: rgb(36 31 33 / 18%);
+}
+
+.c-status-pill__meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-ink);
+  transition: width 220ms ease;
 }

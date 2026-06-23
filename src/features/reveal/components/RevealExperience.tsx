@@ -23,34 +23,48 @@ type TiltStyle = CSSProperties & {
   "--motion-image-y": string;
   "--motion-light-x": string;
   "--motion-light-y": string;
+  "--reveal-progress": number;
+  "--reveal-blur": string;
+  "--reveal-grayscale": number;
+  "--reveal-brightness": number;
+  "--reveal-opacity": number;
 };
 
 export function RevealExperience() {
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isRevealed, setIsRevealed] = useState(false);
+  const [revealProgress, setRevealProgress] = useState(0);
   const stageRef = useRef<HTMLDivElement>(null);
+  const revealProgressRef = useRef(0);
+  const hasTriggeredRevealHapticRef = useRef(false);
   const { trigger } = useWebHaptics();
-  const revealMemory = useCallback(() => {
-    setIsRevealed((currentValue) => {
-      if (currentValue) {
-        return currentValue;
-      }
 
+  const isRevealed = revealProgress >= 1;
+
+  const developMemory = useCallback((amount: number) => {
+    const nextProgress = Math.min(revealProgressRef.current + amount, 1);
+
+    if (nextProgress === revealProgressRef.current) {
+      return;
+    }
+
+    revealProgressRef.current = nextProgress;
+    setRevealProgress(nextProgress);
+
+    if (nextProgress >= 1 && !hasTriggeredRevealHapticRef.current) {
+      hasTriggeredRevealHapticRef.current = true;
       trigger(HAPTIC_EVENTS.reveal, { intensity: 0.65 })?.catch(
         () => undefined,
       );
-
-      return true;
-    });
+    }
   }, [trigger]);
 
   const deviceProfile = useDeviceProfile();
-  const deviceOrientation = useDeviceOrientation(revealMemory);
+  const deviceOrientation = useDeviceOrientation(developMemory);
   const notifications = useNotifications();
   const pointerTilt = usePointerTilt(
     stageRef,
     deviceProfile.inputMode !== "motion" && !isRevealed,
-    revealMemory,
+    developMemory,
   );
 
   const interactionTilt = useMemo(() => {
@@ -68,6 +82,11 @@ export function RevealExperience() {
     "--motion-image-y": "0px",
     "--motion-light-x": "0px",
     "--motion-light-y": "0px",
+    "--reveal-progress": revealProgress,
+    "--reveal-blur": `${18 * (1 - revealProgress)}px`,
+    "--reveal-grayscale": 1 - revealProgress,
+    "--reveal-brightness": 1.25 - revealProgress * 0.25,
+    "--reveal-opacity": 0.48 + revealProgress * 0.52,
   };
 
   useEffect(() => {
@@ -122,14 +141,9 @@ export function RevealExperience() {
       }
 
       gsap.fromTo(
-        ".c-polaroid-card--is-active .c-polaroid-card__image",
-        { filter: "blur(18px) grayscale(1) brightness(1.25)", opacity: 0.48 },
-        {
-          filter: "blur(0px) grayscale(0) brightness(1)",
-          opacity: 1,
-          duration: 1.4,
-          ease: "sine.inOut",
-        },
+        ".c-polaroid-card--is-active .c-polaroid-card__paper",
+        { y: 4, rotate: -0.8 },
+        { y: 0, rotate: 0, duration: 0.7, ease: "elastic.out(1, 0.55)" },
       );
     },
     { scope: stageRef, dependencies: [isRevealed] },
@@ -144,11 +158,13 @@ export function RevealExperience() {
       return;
     }
 
-    revealMemory();
+    developMemory(0.16);
   };
 
   const handleReroll = () => {
-    setIsRevealed(false);
+    revealProgressRef.current = 0;
+    hasTriggeredRevealHapticRef.current = false;
+    setRevealProgress(0);
     pointerTilt.resetPointerTilt();
     setActiveIndex((currentIndex) => (currentIndex + 1) % MEMORIES.length);
     trigger(HAPTIC_EVENTS.snap, { intensity: 0.42 })?.catch(() => undefined);
@@ -178,7 +194,15 @@ export function RevealExperience() {
           style={tiltStyle}
         >
           <div className="c-reveal-board">
-            <p className="c-status-pill">3 reveals / jour - 3 rerolls</p>
+            <div className="c-status-pill">
+              <span className="c-status-pill__label">Developpement</span>
+              <span className="c-status-pill__meter">
+                <span
+                  className="c-status-pill__meter-fill"
+                  style={{ width: `${Math.round(revealProgress * 100)}%` }}
+                />
+              </span>
+            </div>
             <div className="c-polaroid-stack" aria-live="polite">
               {MEMORIES.map((memory, index) => {
                 const cardClassName = [
@@ -186,6 +210,9 @@ export function RevealExperience() {
                   `c-polaroid-card--tone-${memory.tone}`,
                   index === activeIndex ? "c-polaroid-card--is-active" : "",
                   index !== activeIndex ? "c-polaroid-card--is-parked" : "",
+                  revealProgress > 0 && index === activeIndex
+                    ? "c-polaroid-card--is-developing"
+                    : "",
                   isRevealed && index === activeIndex
                     ? "c-polaroid-card--is-revealed"
                     : "",
@@ -208,7 +235,9 @@ export function RevealExperience() {
                         <p className="c-polaroid-card__caption">
                           {isRevealed && index === activeIndex
                             ? memory.caption
-                            : "Le souvenir se revele quand l'image retrouve sa lenteur."}
+                            : revealProgress > 0
+                              ? "Continue de remuer la photo, l'image remonte doucement."
+                              : "Remue la photo pour lancer le developpement."}
                         </p>
                       </div>
                     </div>
@@ -239,7 +268,7 @@ export function RevealExperience() {
               {deviceProfile.inputMode === "motion" &&
               deviceOrientation.permissionState !== "granted"
                 ? "Autoriser le mouvement"
-                : "Fallback reveal"}
+                : "Aider le developpement"}
             </button>
             <button
               className="c-button c-button--ghost"
@@ -259,9 +288,9 @@ export function RevealExperience() {
                 <small>
                   {deviceProfile.inputMode === "motion"
                     ? deviceOrientation.permissionState === "granted"
-                      ? "bouge le telephone pour reveler"
+                      ? "remue le telephone plusieurs fois"
                       : `${deviceProfile.label} - autorisation requise`
-                    : `${deviceProfile.label} - bouge la souris sur la photo`}
+                    : `${deviceProfile.label} - remue avec la souris`}
                 </small>
               </span>
             </div>

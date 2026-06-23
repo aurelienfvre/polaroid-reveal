@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type DeviceOrientationPermissionState =
   | "idle"
@@ -26,20 +26,20 @@ const EMPTY_TILT: DeviceTilt = {
 };
 
 const MAX_TILT_FOR_REVEAL = 18;
-const REVEAL_THRESHOLD = 0.18;
 
-function getMotionIntent(event: DeviceOrientationEvent) {
+function normalizeTiltForReveal(event: DeviceOrientationEvent) {
   const x = Math.min(Math.max((event.gamma ?? 0) / MAX_TILT_FOR_REVEAL, -1), 1);
   const y = Math.min(Math.max((event.beta ?? 0) / MAX_TILT_FOR_REVEAL, -1), 1);
 
-  return Math.hypot(x, y) > REVEAL_THRESHOLD;
+  return { x, y };
 }
 
-export function useDeviceOrientation(onMotionIntent?: () => void) {
+export function useDeviceOrientation(onMotionProgress?: (amount: number) => void) {
   const [orientation, setOrientation] = useState<DeviceTilt>(EMPTY_TILT);
   const [permissionState, setPermissionState] =
     useState<DeviceOrientationPermissionState>("idle");
   const [isListening, setIsListening] = useState(false);
+  const lastTiltRef = useRef<{ x: number; y: number } | null>(null);
   const isSupported = permissionState !== "unsupported";
 
   const requestAccess = useCallback(async () => {
@@ -86,8 +86,16 @@ export function useDeviceOrientation(onMotionIntent?: () => void) {
         gamma: event.gamma,
       });
 
-      if (getMotionIntent(event)) {
-        onMotionIntent?.();
+      const tilt = normalizeTiltForReveal(event);
+      const lastTilt = lastTiltRef.current;
+      const delta = lastTilt
+        ? Math.hypot(tilt.x - lastTilt.x, tilt.y - lastTilt.y)
+        : 0;
+
+      lastTiltRef.current = tilt;
+
+      if (delta > 0.04) {
+        onMotionProgress?.(Math.min(delta * 0.35, 0.08));
       }
     };
 
@@ -96,7 +104,7 @@ export function useDeviceOrientation(onMotionIntent?: () => void) {
     return () => {
       window.removeEventListener("deviceorientation", handleOrientation);
     };
-  }, [isListening, onMotionIntent]);
+  }, [isListening, onMotionProgress]);
 
   return {
     orientation,
