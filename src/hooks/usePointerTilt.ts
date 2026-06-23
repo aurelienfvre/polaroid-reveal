@@ -24,6 +24,7 @@ function writeTiltProperties(element: HTMLElement, tilt: NormalizedTilt) {
 export function usePointerTilt(
   targetRef: RefObject<HTMLElement | null>,
   isEnabled: boolean,
+  onMotionIntent?: () => void,
 ) {
   useEffect(() => {
     const target = targetRef.current;
@@ -46,6 +47,10 @@ export function usePointerTilt(
         x: clamp(x),
         y: clamp(y),
       });
+
+      if (Math.hypot(x, y) > 0.22) {
+        onMotionIntent?.();
+      }
     };
 
     const handleMouseLeave = () => {
@@ -59,7 +64,7 @@ export function usePointerTilt(
       target.removeEventListener("mousemove", handleMouseMove);
       target.removeEventListener("mouseleave", handleMouseLeave);
     };
-  }, [isEnabled, targetRef]);
+  }, [isEnabled, onMotionIntent, targetRef]);
 
   return {
     resetPointerTilt: () => {

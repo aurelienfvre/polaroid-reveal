@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import { Bell, Camera, MousePointer2, RotateCcw, WandSparkles } from "lucide-react";
 import gsap from "gsap";
@@ -30,12 +30,27 @@ export function RevealExperience() {
   const [isRevealed, setIsRevealed] = useState(false);
   const stageRef = useRef<HTMLDivElement>(null);
   const { trigger } = useWebHaptics();
+  const revealMemory = useCallback(() => {
+    setIsRevealed((currentValue) => {
+      if (currentValue) {
+        return currentValue;
+      }
+
+      trigger(HAPTIC_EVENTS.reveal, { intensity: 0.65 })?.catch(
+        () => undefined,
+      );
+
+      return true;
+    });
+  }, [trigger]);
+
   const deviceProfile = useDeviceProfile();
-  const deviceOrientation = useDeviceOrientation();
+  const deviceOrientation = useDeviceOrientation(revealMemory);
   const notifications = useNotifications();
   const pointerTilt = usePointerTilt(
     stageRef,
-    deviceProfile.inputMode !== "motion",
+    deviceProfile.inputMode !== "motion" && !isRevealed,
+    revealMemory,
   );
 
   const interactionTilt = useMemo(() => {
@@ -84,7 +99,10 @@ export function RevealExperience() {
       "--motion-light-y",
       `${interactionTilt.y * 44}px`,
     );
-  }, [deviceOrientation.permissionState, interactionTilt]);
+  }, [
+    deviceOrientation.permissionState,
+    interactionTilt,
+  ]);
 
   useGSAP(
     () => {
@@ -117,16 +135,16 @@ export function RevealExperience() {
     { scope: stageRef, dependencies: [isRevealed] },
   );
 
-  const handleReveal = async () => {
+  const handlePrimaryAction = async () => {
     if (
       deviceProfile.isMobileLike &&
       deviceOrientation.permissionState !== "granted"
     ) {
       await deviceOrientation.requestAccess().catch(() => false);
+      return;
     }
 
-    setIsRevealed(true);
-    trigger(HAPTIC_EVENTS.reveal, { intensity: 0.65 })?.catch(() => undefined);
+    revealMemory();
   };
 
   const handleReroll = () => {
@@ -215,10 +233,13 @@ export function RevealExperience() {
             <button
               className="c-button c-button--primary"
               type="button"
-              onClick={handleReveal}
+              onClick={handlePrimaryAction}
             >
               <Camera aria-hidden="true" size={18} />
-              Reveler
+              {deviceProfile.inputMode === "motion" &&
+              deviceOrientation.permissionState !== "granted"
+                ? "Autoriser le mouvement"
+                : "Fallback reveal"}
             </button>
             <button
               className="c-button c-button--ghost"
@@ -238,9 +259,9 @@ export function RevealExperience() {
                 <small>
                   {deviceProfile.inputMode === "motion"
                     ? deviceOrientation.permissionState === "granted"
-                      ? "telephone en mouvement"
-                      : `${deviceProfile.label} - gyro au reveal`
-                    : `${deviceProfile.label} - souris active`}
+                      ? "bouge le telephone pour reveler"
+                      : `${deviceProfile.label} - autorisation requise`
+                    : `${deviceProfile.label} - bouge la souris sur la photo`}
                 </small>
               </span>
             </div>

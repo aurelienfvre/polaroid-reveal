@@ -25,7 +25,17 @@ const EMPTY_TILT: DeviceTilt = {
   gamma: null,
 };
 
-export function useDeviceOrientation() {
+const MAX_TILT_FOR_REVEAL = 18;
+const REVEAL_THRESHOLD = 0.18;
+
+function getMotionIntent(event: DeviceOrientationEvent) {
+  const x = Math.min(Math.max((event.gamma ?? 0) / MAX_TILT_FOR_REVEAL, -1), 1);
+  const y = Math.min(Math.max((event.beta ?? 0) / MAX_TILT_FOR_REVEAL, -1), 1);
+
+  return Math.hypot(x, y) > REVEAL_THRESHOLD;
+}
+
+export function useDeviceOrientation(onMotionIntent?: () => void) {
   const [orientation, setOrientation] = useState<DeviceTilt>(EMPTY_TILT);
   const [permissionState, setPermissionState] =
     useState<DeviceOrientationPermissionState>("idle");
@@ -75,6 +85,10 @@ export function useDeviceOrientation() {
         beta: event.beta,
         gamma: event.gamma,
       });
+
+      if (getMotionIntent(event)) {
+        onMotionIntent?.();
+      }
     };
 
     window.addEventListener("deviceorientation", handleOrientation);
@@ -82,7 +96,7 @@ export function useDeviceOrientation() {
     return () => {
       window.removeEventListener("deviceorientation", handleOrientation);
     };
-  }, [isListening]);
+  }, [isListening, onMotionIntent]);
 
   return {
     orientation,
