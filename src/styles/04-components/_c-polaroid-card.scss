@@ -59,7 +59,7 @@
     rotateY(var(--motion-depth-x))
     rotate(var(--shake-rotate));
   transform-origin: 50% 82%;
-  transition: transform 140ms ease-out;
+  transition: transform 90ms ease-out;
   will-change: transform;
 }
 

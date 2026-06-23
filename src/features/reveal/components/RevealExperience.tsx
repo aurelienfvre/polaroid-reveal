@@ -59,12 +59,12 @@ export function RevealExperience() {
       const directionLength = Math.max(Math.hypot(rawX, rawY), 0.2);
       const directionX = rawX / directionLength;
       const directionY = rawY / directionLength;
-      const force = Math.min(Math.max(impulse?.force ?? amount * 16, 0.7), 2.1);
-      const shakeX = directionX * gsap.utils.random(10, 18) * force;
-      const shakeY = directionY * gsap.utils.random(5, 12) * force;
+      const force = Math.min(Math.max(impulse?.force ?? amount * 16, 0.8), 1.9);
+      const shakeX = directionX * gsap.utils.random(18, 32) * force;
+      const shakeY = directionY * gsap.utils.random(10, 22) * force;
       const shakeRotate =
-        (-directionX * gsap.utils.random(2.2, 4.5) +
-          directionY * gsap.utils.random(-1.2, 1.2)) *
+        (-directionX * gsap.utils.random(5, 9) +
+          directionY * gsap.utils.random(-2.2, 2.2)) *
         force;
 
       gsap.killTweensOf(motionTarget);
@@ -77,8 +77,8 @@ export function RevealExperience() {
             "--shake-y": `${shakeY}px`,
             "--shake-rotate": `${shakeRotate}deg`,
             "--develop-flash-opacity": Math.min(0.14 + amount * 1.8, 0.36),
-            duration: 0.08,
-            ease: "power2.out",
+            duration: 0.07,
+            ease: "power3.out",
           },
           0,
         )
@@ -87,7 +87,7 @@ export function RevealExperience() {
           "--shake-y": `${shakeY * -0.34}px`,
           "--shake-rotate": `${shakeRotate * -0.52}deg`,
           "--develop-flash-opacity": 0.08,
-          duration: 0.12,
+          duration: 0.11,
           ease: "sine.inOut",
         })
         .to(motionTarget, {
@@ -386,7 +386,7 @@ export function RevealExperience() {
                 <small>
                   {deviceProfile.inputMode === "motion"
                     ? deviceOrientation.permissionState === "granted"
-                      ? "secoue ou incline le telephone plusieurs fois"
+                      ? "secoue franchement le telephone plusieurs fois"
                       : `${deviceProfile.label} - autorisation requise`
                     : `${deviceProfile.label} - remue avec la souris ou le trackpad`}
                 </small>
