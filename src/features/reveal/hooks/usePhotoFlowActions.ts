@@ -1,4 +1,3 @@
-import { useWebHaptics } from "web-haptics/react";
 import type { Dispatch, SetStateAction } from "react";
 import { MEMORIES } from "@/features/reveal/data/memories";
 import type { Memory } from "@/features/reveal/data/memories";
@@ -8,7 +7,7 @@ import {
 } from "@/features/reveal/lib/canvasPhotos";
 import type { DeviceProfile } from "@/hooks/useDeviceProfile";
 import type { CanvasPhoto, ExperiencePhase } from "@/features/reveal/types/revealTypes";
-import { HAPTIC_EVENTS } from "@/lib/haptics/hapticEvents";
+import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 
 type Params = {
   activeMemory: Memory;
@@ -29,7 +28,7 @@ type Params = {
 };
 
 export function usePhotoFlowActions(params: Params) {
-  const { trigger } = useWebHaptics();
+  const triggerHaptic = usePolaroidHaptics();
 
   const handleCameraShoot = () => {
     if (params.isDailyComplete) {
@@ -40,7 +39,7 @@ export function usePhotoFlowActions(params: Params) {
     params.resetDevelopmentState();
     params.setPhotoFocused(false);
     params.setPhase("develop");
-    trigger(HAPTIC_EVENTS.snap, { intensity: 0.44 })?.catch(() => undefined);
+    triggerHaptic("snap", { intensity: 0.44 });
   };
 
   const handlePolaroidSelect = async () => {
@@ -58,7 +57,7 @@ export function usePhotoFlowActions(params: Params) {
     }
 
     params.setPhotoFocused(true);
-    trigger(HAPTIC_EVENTS.snap, { intensity: 0.32 })?.catch(() => undefined);
+    triggerHaptic("snap", { intensity: 0.32 });
   };
 
   const handlePlaceRevealedPhoto = () => {
@@ -81,7 +80,7 @@ export function usePhotoFlowActions(params: Params) {
     params.resetPointerTilt();
     params.resetDevelopmentState();
     params.setPhotoFocused(false);
-    trigger(HAPTIC_EVENTS.snap, { intensity: 0.5 })?.catch(() => undefined);
+    triggerHaptic("snap", { intensity: 0.5 });
     params.setPhase(nextCount >= DAILY_REVEAL_LIMIT ? "canvas" : "camera");
     if (nextCount < DAILY_REVEAL_LIMIT) {
       params.setActiveIndex((currentIndex) => (currentIndex + 1) % MEMORIES.length);

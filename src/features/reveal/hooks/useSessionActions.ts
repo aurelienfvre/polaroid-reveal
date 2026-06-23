@@ -1,11 +1,10 @@
-import { useWebHaptics } from "web-haptics/react";
 import type { Dispatch, SetStateAction } from "react";
 import { MEMORIES } from "@/features/reveal/data/memories";
 import type {
   CanvasPhoto,
   ExperiencePhase,
 } from "@/features/reveal/types/revealTypes";
-import { HAPTIC_EVENTS } from "@/lib/haptics/hapticEvents";
+import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 
 type Params = {
   placedPhotos: CanvasPhoto[];
@@ -24,14 +23,14 @@ export function useSessionActions({
   setPhase,
   setPlacedPhotos,
 }: Params) {
-  const { trigger } = useWebHaptics();
+  const triggerHaptic = usePolaroidHaptics();
 
   const handleReroll = () => {
     resetPointerTilt();
     resetDevelopmentState();
     setActiveIndex((currentIndex) => (currentIndex + 1) % MEMORIES.length);
     setPhase("camera");
-    trigger(HAPTIC_EVENTS.snap, { intensity: 0.42 })?.catch(() => undefined);
+    triggerHaptic("snap", { intensity: 0.42 });
   };
 
   const handleOpenCanvas = () => {

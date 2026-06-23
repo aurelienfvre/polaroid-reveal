@@ -1,12 +1,11 @@
 import { useCallback, useRef, useState } from "react";
 import type { RefObject } from "react";
-import { useWebHaptics } from "web-haptics/react";
 import {
   playDevelopmentImpulse,
   resetDevelopmentImpulse,
 } from "@/features/reveal/lib/developmentImpulse";
 import type { ExperiencePhase } from "@/features/reveal/types/revealTypes";
-import { HAPTIC_EVENTS } from "@/lib/haptics/hapticEvents";
+import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 import type { MotionImpulse } from "@/lib/motion/motionProgress";
 
 type Params = {
@@ -24,7 +23,7 @@ export function useDevelopmentController({
   const revealProgressRef = useRef(0);
   const hasRevealedRef = useRef(false);
   const lastShakeHapticAtRef = useRef(0);
-  const { trigger } = useWebHaptics();
+  const triggerHaptic = usePolaroidHaptics();
 
   const resetDevelopmentState = useCallback(() => {
     revealProgressRef.current = 0;
@@ -43,12 +42,12 @@ export function useDevelopmentController({
 
       if (now - lastShakeHapticAtRef.current > 160) {
         lastShakeHapticAtRef.current = now;
-        trigger(HAPTIC_EVENTS.shake, {
-          intensity: Math.min(0.28 + impulse.force * 0.12, 0.58),
-        })?.catch(() => undefined);
+        triggerHaptic("shake", {
+          intensity: Math.min(0.48 + impulse.force * 0.18, 0.92),
+        });
       }
     },
-    [trigger],
+    [triggerHaptic],
   );
 
   const developMemory = useCallback(
@@ -76,12 +75,10 @@ export function useDevelopmentController({
 
       if (nextProgress >= 1 && !hasRevealedRef.current) {
         hasRevealedRef.current = true;
-        trigger(HAPTIC_EVENTS.reveal, { intensity: 0.65 })?.catch(
-          () => undefined,
-        );
+        triggerHaptic("reveal", { intensity: 0.8 });
       }
     },
-    [canDevelopRef, phaseRef, polaroidMotionRef, trigger, triggerShakeHaptic],
+    [canDevelopRef, phaseRef, polaroidMotionRef, triggerHaptic, triggerShakeHaptic],
   );
 
   return {
