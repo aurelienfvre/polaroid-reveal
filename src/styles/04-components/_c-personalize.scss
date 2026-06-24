@@ -1,0 +1,217 @@
+.c-perso {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100dvh;
+  background: var(--grey-500);
+  overflow: hidden;
+  user-select: none;
+}
+
+.c-perso__title {
+  padding: clamp(1rem, 3dvh, 2rem) var(--space-5) 0;
+  color: var(--color-ink-muted);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+// Stage holding the fanned stack of prints.
+.c-perso__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.c-perso__stage:active {
+  cursor: grabbing;
+}
+
+.c-perso-card {
+  grid-area: 1 / 1;
+  width: min(64vw, 38dvh);
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease;
+  will-change: transform;
+}
+
+.c-perso-card--is-active {
+  filter: drop-shadow(0 1.2rem 2.4rem rgb(21 21 21 / 22%));
+}
+
+.c-perso-card__paper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  aspect-ratio: 113 / 138;
+  padding: 6% 6% 0;
+  background: var(--grey-50);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 16%);
+}
+
+.c-perso-card__image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--grey-900) center / cover no-repeat;
+}
+
+.c-perso-card__grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.c-perso-card__caption {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5em;
+  padding: 4% 2%;
+  color: var(--grey-900);
+  font-size: clamp(1rem, 3.4dvh, 1.6rem);
+  line-height: 1.1;
+  text-align: center;
+  word-break: break-word;
+}
+
+// Contextual editing panel above the toolbar.
+.c-perso__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-4) var(--space-4) 0;
+}
+
+.c-perso__panel-label {
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: rgb(21 21 21 / 78%);
+  color: var(--grey-50);
+  font-size: 0.85rem;
+}
+
+.c-perso__filters {
+  display: flex;
+  gap: var(--space-2);
+  width: 100%;
+  padding-bottom: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.c-perso__filter {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+}
+
+.c-perso__filter.is-selected {
+  border-color: var(--grey-900);
+}
+
+.c-perso__filter-thumb {
+  display: block;
+  width: 56px;
+  height: 56px;
+  background: var(--grey-900) center / cover no-repeat;
+}
+
+.c-perso__text-input {
+  width: min(90%, 22rem);
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--grey-50);
+  color: var(--grey-900);
+  text-align: center;
+}
+
+.c-perso__fonts,
+.c-perso__panel--texture {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.c-perso__font,
+.c-perso__texture {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--grey-50);
+  color: var(--grey-900);
+  cursor: pointer;
+}
+
+.c-perso__font.is-selected,
+.c-perso__texture.is-selected {
+  border-color: var(--grey-900);
+  background: var(--grey-900);
+  color: var(--grey-50);
+}
+
+// Bottom toolbar.
+.c-perso__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5) max(env(safe-area-inset-bottom), var(--space-4));
+  background: var(--grey-900);
+}
+
+.c-perso__tools {
+  display: flex;
+  gap: var(--space-5);
+}
+
+.c-perso__tool {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgb(255 255 255 / 62%);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.c-perso__tool img {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.c-perso__tool.is-active {
+  color: var(--grey-50);
+}
+
+.c-perso__validate {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--grey-50);
+  font-family: var(--font-family-commit), monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+.c-perso__validate img {
+  width: 1.1rem;
+  height: 1.1rem;
+}

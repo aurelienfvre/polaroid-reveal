@@ -91,7 +91,7 @@ export function usePhotoFlowActions(params: Params) {
     params.setPhase("camera");
   };
 
-  // Finish the daily set and move on to the canvas.
+  // Finish the daily set and move on to personalising the prints.
   const handleShowMyPhotos = () => {
     if (!params.isRevealed) {
       return;
@@ -101,6 +101,11 @@ export function usePhotoFlowActions(params: Params) {
     params.resetPointerTilt();
     params.resetDevelopmentState();
     params.setPhotoFocused(false);
+    triggerHaptic("snap", { intensity: 0.5 });
+    params.setPhase("personalize");
+  };
+
+  const handleValidatePersonalization = () => {
     triggerHaptic("snap", { intensity: 0.5 });
     params.setPhase("canvas");
   };
@@ -132,6 +137,7 @@ export function usePhotoFlowActions(params: Params) {
     handleShare,
     handleShowMyPhotos,
     handleTakeNewPhoto,
+    handleValidatePersonalization,
   };
 }
 

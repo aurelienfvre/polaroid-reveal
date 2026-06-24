@@ -52,6 +52,7 @@ export function useRevealExperienceModel(
     stageRef,
   });
   usePolaroidTiltEffect({
+    isRevealed: development.isRevealed,
     motionRef: polaroidMotionRef,
     orientation: motion.orientation,
     permissionState: motion.permissionState,
@@ -74,6 +75,7 @@ export function useRevealExperienceModel(
       onShoot: photo.handleCameraShoot,
       onShowMyPhotos: photo.handleShowMyPhotos,
       onTakeNewPhoto: photo.handleTakeNewPhoto,
+      onValidatePersonalization: photo.handleValidatePersonalization,
       phase: flow.phase,
       photos: flow.placedPhotos,
       revealProgress: development.revealProgress,

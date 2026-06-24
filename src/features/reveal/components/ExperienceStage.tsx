@@ -1,6 +1,7 @@
 import type { PointerEvent, RefObject } from "react";
 import { DevelopStage } from "@/features/reveal/components/DevelopStage";
 import { MemoryCanvas } from "@/features/reveal/components/MemoryCanvas";
+import { PersonalizeStage } from "@/features/reveal/components/PersonalizeStage";
 import { PolaroidCamera } from "@/features/reveal/components/PolaroidCamera";
 import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
 import type {
@@ -31,6 +32,7 @@ type Props = {
   onShoot: () => void;
   onShowMyPhotos: () => void;
   onTakeNewPhoto: () => void;
+  onValidatePersonalization: () => void;
   phase: ExperiencePhase;
   photos: CanvasPhoto[];
   revealProgress: number;
@@ -38,6 +40,10 @@ type Props = {
 };
 
 export function ExperienceStage(props: Props) {
+  if (props.phase === "personalize") {
+    return <PersonalizeStage onValidate={props.onValidatePersonalization} photos={props.photos} />;
+  }
+
   if (props.phase === "canvas") {
     return (
       <MemoryCanvas

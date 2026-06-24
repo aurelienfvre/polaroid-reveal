@@ -4,13 +4,24 @@ import type { DeviceTilt } from "@/hooks/useDeviceOrientation";
 import { normalizeTilt } from "@/lib/gyroscope/normalizeTilt";
 
 type Params = {
+  isRevealed: boolean;
   motionRef: RefObject<HTMLElement | null>;
   orientation: DeviceTilt;
   permissionState: string;
   phase: string;
 };
 
+const MOTION_VARS = [
+  "--motion-depth-x",
+  "--motion-depth-y",
+  "--motion-image-x",
+  "--motion-image-y",
+  "--motion-light-x",
+  "--motion-light-y",
+];
+
 export function usePolaroidTiltEffect({
+  isRevealed,
   motionRef,
   orientation,
   permissionState,
@@ -25,6 +36,14 @@ export function usePolaroidTiltEffect({
   }, [orientation, permissionState]);
 
   useEffect(() => {
+    // Once developed, snap the print back to straight and stop reacting to the
+    // device — the motion is too sensitive on mobile and otherwise makes the
+    // finished print feel like it is still moving, blocking the next step.
+    if (isRevealed && motionRef.current) {
+      MOTION_VARS.forEach((name) => motionRef.current?.style.setProperty(name, "0"));
+      return;
+    }
+
     if (phase !== "develop" || !motionRef.current || permissionState !== "granted") {
       return;
     }
@@ -53,5 +72,5 @@ export function usePolaroidTiltEffect({
       "--motion-light-y",
       `${interactionTilt.y * 44}px`,
     );
-  }, [interactionTilt, motionRef, permissionState, phase]);
+  }, [interactionTilt, isRevealed, motionRef, permissionState, phase]);
 }
