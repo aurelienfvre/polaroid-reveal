@@ -1,18 +1,26 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PolaroidCameraScene } from "@/features/reveal/components/PolaroidCameraScene";
+import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
+import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
+
+const EJECT_DURATION = 1980;
 
 type Props = {
   isPassive?: boolean;
+  model: PolaroidCameraModel;
   onShoot?: () => void;
 };
 
-export function PolaroidCamera({ isPassive = false, onShoot }: Props) {
+export function PolaroidCamera({ isPassive = false, model, onShoot }: Props) {
   const [isEjecting, setIsEjecting] = useState(false);
   const isEjectingRef = useRef(false);
   const timeoutRef = useRef<number | null>(null);
+  const triggerHaptic = usePolaroidHaptics();
   const className = [
     "c-polaroid-camera",
+    `c-polaroid-camera--model-${model.id}`,
     isPassive ? "c-polaroid-camera--is-passive" : "",
     isEjecting ? "c-polaroid-camera--is-ejecting" : "",
   ].filter(Boolean).join(" ");
@@ -24,12 +32,13 @@ export function PolaroidCamera({ isPassive = false, onShoot }: Props) {
 
     isEjectingRef.current = true;
     setIsEjecting(true);
-    onShoot();
+    triggerHaptic("eject", { intensity: 0.68 });
 
     timeoutRef.current = window.setTimeout(() => {
+      onShoot();
       isEjectingRef.current = false;
       setIsEjecting(false);
-    }, 900);
+    }, EJECT_DURATION);
   };
 
   useEffect(() => () => {
@@ -40,19 +49,19 @@ export function PolaroidCamera({ isPassive = false, onShoot }: Props) {
 
   return (
     <div className={className}>
+      <PolaroidCameraScene
+        isEjecting={isEjecting}
+        isPassive={isPassive}
+        model={model}
+      />
       <button
-        className="c-polaroid-camera__body"
+        className="c-polaroid-camera__hotspot"
         type="button"
         onClick={handleShoot}
         onPointerUp={handleShoot}
         disabled={isPassive}
         aria-label="Sortir une photo Polaroid"
-      >
-        <span className="c-polaroid-camera__flash" />
-        <span className="c-polaroid-camera__lens" />
-        <span className="c-polaroid-camera__slot" />
-        <span className="c-polaroid-camera__print" />
-      </button>
+      />
       {!isPassive && (
         <p className="c-polaroid-camera__caption">
           Clique l&apos;appareil pour ejecter le prochain Polaroid.

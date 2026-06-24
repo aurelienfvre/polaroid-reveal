@@ -10,12 +10,14 @@ import {
   animateFocusedPhoto,
   animateRevealedPhoto,
 } from "@/features/reveal/lib/revealAnimationTimelines";
+import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
 import type { ExperiencePhase } from "@/features/reveal/types/revealTypes";
 
 gsap.registerPlugin(useGSAP);
 
 type Params = {
   activeIndex: number;
+  cameraModel: PolaroidCameraModel;
   isPhotoFocused: boolean;
   isRevealed: boolean;
   phase: ExperiencePhase;
@@ -24,6 +26,7 @@ type Params = {
 
 export function useRevealAnimations({
   activeIndex,
+  cameraModel,
   isPhotoFocused,
   isRevealed,
   phase,
@@ -46,7 +49,7 @@ export function useRevealAnimations({
       }
 
       if (phase === "develop") {
-        animateDevelopEntry();
+        animateDevelopEntry(cameraModel.photoExit);
       }
 
       if (phase === "canvas") {
@@ -55,7 +58,7 @@ export function useRevealAnimations({
 
       previousPhaseRef.current = phase;
     },
-    { scope: stageRef, dependencies: [phase, activeIndex] },
+    { scope: stageRef, dependencies: [phase, activeIndex, cameraModel] },
   );
 
   useGSAP(

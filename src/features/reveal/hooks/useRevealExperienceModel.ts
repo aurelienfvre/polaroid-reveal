@@ -3,6 +3,7 @@ import { useCanvasDrag } from "@/features/reveal/hooks/useCanvasDrag";
 import { useDevelopmentController } from "@/features/reveal/hooks/useDevelopmentController";
 import { usePhotoFlowActions } from "@/features/reveal/hooks/usePhotoFlowActions";
 import { usePolaroidTiltEffect } from "@/features/reveal/hooks/usePolaroidTiltEffect";
+import { useRandomPolaroidCameraModel } from "@/features/reveal/hooks/useRandomPolaroidCameraModel";
 import { useRevealAnimations } from "@/features/reveal/hooks/useRevealAnimations";
 import { useRevealFlowState } from "@/features/reveal/hooks/useRevealFlowState";
 import { getTiltStyle } from "@/features/reveal/lib/revealStyles";
@@ -15,6 +16,7 @@ export function useRevealExperienceModel(
   polaroidMotionRef: RefObject<HTMLElement | null>,
 ) {
   const flow = useRevealFlowState();
+  const cameraModel = useRandomPolaroidCameraModel();
   const deviceProfile = useDeviceProfile();
   const development = useDevelopmentController({
     canDevelopRef: flow.isPhotoFocusedRef,
@@ -43,6 +45,7 @@ export function useRevealExperienceModel(
   });
   useRevealAnimations({
     activeIndex: flow.activeIndex,
+    cameraModel,
     isPhotoFocused: flow.isPhotoFocused,
     isRevealed: development.isRevealed,
     phase: flow.phase,
@@ -60,6 +63,7 @@ export function useRevealExperienceModel(
     stage: {
       ...drag,
       activeIndex: flow.activeIndex,
+      cameraModel,
       isPhotoFocused: flow.isPhotoFocused,
       isRevealed: development.isRevealed,
       nextPhotoNumber: flow.nextPhotoNumber,

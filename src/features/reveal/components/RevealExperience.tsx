@@ -10,7 +10,7 @@ export function RevealExperience() {
   const model = useRevealExperienceModel(stageRef, polaroidMotionRef);
 
   return (
-    <main className="p-home">
+    <main className={`p-home p-home--is-${model.phase}`}>
       <section
         className={`p-home__experience p-home__experience--is-${model.phase}`}
       >

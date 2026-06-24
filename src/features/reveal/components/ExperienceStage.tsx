@@ -2,6 +2,7 @@ import type { PointerEvent, RefObject } from "react";
 import { DevelopStage } from "@/features/reveal/components/DevelopStage";
 import { MemoryCanvas } from "@/features/reveal/components/MemoryCanvas";
 import { PolaroidCamera } from "@/features/reveal/components/PolaroidCamera";
+import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
 import type {
   CanvasPhoto,
   ExperiencePhase,
@@ -10,6 +11,7 @@ import type {
 
 type Props = {
   activeIndex: number;
+  cameraModel: PolaroidCameraModel;
   draggingId: string | null;
   isPhotoFocused: boolean;
   isRevealed: boolean;
@@ -48,6 +50,7 @@ export function ExperienceStage(props: Props) {
     <div className="c-reveal-board">
       <PolaroidCamera
         isPassive={props.phase === "develop"}
+        model={props.cameraModel}
         onShoot={props.onShoot}
       />
       {props.phase === "develop" && (

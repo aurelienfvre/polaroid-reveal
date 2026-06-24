@@ -1,9 +1,13 @@
 .c-polaroid-stack {
   position: relative;
+  z-index: 2;
   display: grid;
   place-items: center;
-  width: min(78vw, 24rem);
-  aspect-ratio: 0.78;
+  width: min(68vw, 18rem);
+  aspect-ratio: 0.72;
+  opacity: 0;
+  pointer-events: auto;
+  transform-origin: 50% 0%;
 }
 
 .c-polaroid-card {
@@ -23,9 +27,10 @@
   --develop-flash-opacity: 0;
 
   position: absolute;
-  width: min(76vw, 22rem);
+  width: 100%;
   opacity: 0;
   pointer-events: none;
+  transform-origin: 50% 0%;
 }
 
 .c-polaroid-card--is-active {
@@ -81,10 +86,4 @@
 .c-polaroid-card__paper:focus-visible {
   outline: 3px solid var(--color-rose);
   outline-offset: 6px;
-}
-
-@media (max-width: 720px) {
-  .c-polaroid-card__paper {
-    min-height: 28rem;
-  }
 }

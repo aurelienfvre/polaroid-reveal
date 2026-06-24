@@ -39,7 +39,6 @@ export function usePhotoFlowActions(params: Params) {
     params.resetDevelopmentState();
     params.setPhotoFocused(false);
     params.setPhase("develop");
-    triggerHaptic("snap", { intensity: 0.44 });
   };
 
   const handlePolaroidSelect = async () => {
