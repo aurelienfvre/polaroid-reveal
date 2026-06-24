@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PolaroidButton } from "@/features/reveal/components/PolaroidButton";
 import { PolaroidCameraScene } from "@/features/reveal/components/PolaroidCameraScene";
 import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
 import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
@@ -17,7 +18,7 @@ export function PolaroidCamera({ isPassive = false, model, onShoot }: Props) {
   const [isEjecting, setIsEjecting] = useState(false);
   const isEjectingRef = useRef(false);
   const timeoutRef = useRef<number | null>(null);
-  const triggerHaptic = usePolaroidHaptics();
+  const playHaptic = usePolaroidHaptics();
   const className = [
     "c-polaroid-camera",
     `c-polaroid-camera--model-${model.id}`,
@@ -32,7 +33,7 @@ export function PolaroidCamera({ isPassive = false, model, onShoot }: Props) {
 
     isEjectingRef.current = true;
     setIsEjecting(true);
-    triggerHaptic("eject", { intensity: 0.68 });
+    playHaptic("eject", { intensity: 0.68 });
 
     timeoutRef.current = window.setTimeout(() => {
       onShoot();
@@ -64,22 +65,13 @@ export function PolaroidCamera({ isPassive = false, model, onShoot }: Props) {
         />
       </div>
       {!isPassive && (
-        <button
-          className="c-polaroid-camera__trigger"
-          type="button"
+        <PolaroidButton
           onClick={handleShoot}
           disabled={isEjecting}
           aria-label="Take a photo"
         >
-          <span className="c-polaroid-camera__trigger-stripes" aria-hidden="true">
-            <span className="c-polaroid-camera__trigger-stripe c-polaroid-camera__trigger-stripe--red" />
-            <span className="c-polaroid-camera__trigger-stripe c-polaroid-camera__trigger-stripe--orange" />
-            <span className="c-polaroid-camera__trigger-stripe c-polaroid-camera__trigger-stripe--yellow" />
-            <span className="c-polaroid-camera__trigger-stripe c-polaroid-camera__trigger-stripe--green" />
-            <span className="c-polaroid-camera__trigger-stripe c-polaroid-camera__trigger-stripe--blue" />
-          </span>
-          <span className="c-polaroid-camera__trigger-label">TAKE A PHOTO</span>
-        </button>
+          TAKE A PHOTO
+        </PolaroidButton>
       )}
     </div>
   );

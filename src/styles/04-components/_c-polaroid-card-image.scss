@@ -9,9 +9,8 @@
   border-radius: 0;
   background: var(--grey-900);
   box-shadow: none;
-  filter: none;
   opacity: 1;
-  transition: background 420ms ease, filter 420ms ease;
+  transition: background 420ms ease;
 }
 
 .c-polaroid-card__photo {
@@ -20,28 +19,11 @@
   background: var(--memory-image-url);
   background-position: center;
   background-size: cover;
-  filter:
-    blur(var(--reveal-blur))
-    grayscale(var(--reveal-grayscale))
-    brightness(var(--reveal-brightness));
   opacity: var(--reveal-progress);
-  transition:
-    filter 260ms ease,
-    opacity 260ms ease;
-}
-
-.c-polaroid-card__image::after {
-  position: absolute;
-  inset: 0;
-  background: rgb(255 255 255);
-  content: "";
-  opacity: var(--develop-flash-opacity);
-  mix-blend-mode: screen;
-  pointer-events: none;
+  transition: opacity 260ms ease;
 }
 
 .c-polaroid-card--is-revealed .c-polaroid-card__photo {
-  filter: none;
   opacity: 1;
 }
 
