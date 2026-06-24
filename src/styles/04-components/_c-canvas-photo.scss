@@ -59,7 +59,9 @@
   border-radius: var(--radius-sm);
   background:
     linear-gradient(145deg, rgb(255 255 255 / 0%), rgb(36 31 33 / 16%)),
-    var(--color-cyan);
+    var(--canvas-photo-image-url);
+  background-position: center;
+  background-size: cover;
 }
 
 .c-canvas-photo__title {

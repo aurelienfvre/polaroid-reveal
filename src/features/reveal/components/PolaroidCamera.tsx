@@ -24,11 +24,12 @@ export function PolaroidCamera({ isPassive = false, onShoot }: Props) {
 
     isEjectingRef.current = true;
     setIsEjecting(true);
+    onShoot();
+
     timeoutRef.current = window.setTimeout(() => {
-      onShoot();
       isEjectingRef.current = false;
       setIsEjecting(false);
-    }, 760);
+    }, 900);
   };
 
   useEffect(() => () => {

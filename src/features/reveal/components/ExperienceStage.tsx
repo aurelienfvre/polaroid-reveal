@@ -13,7 +13,7 @@ type Props = {
   draggingId: string | null;
   isPhotoFocused: boolean;
   isRevealed: boolean;
-  motionRef: RefObject<HTMLDivElement | null>;
+  motionRef: RefObject<HTMLButtonElement | null>;
   nextPhotoNumber: number;
   onCanvasPointerCancel: () => void;
   onCanvasPointerDown: (
@@ -46,21 +46,20 @@ export function ExperienceStage(props: Props) {
 
   return (
     <div className="c-reveal-board">
-      {props.phase === "camera" ? (
-        <PolaroidCamera onShoot={props.onShoot} />
-      ) : (
-        <>
-          <PolaroidCamera isPassive onShoot={props.onShoot} />
-          <DevelopStage
-            activeIndex={props.activeIndex}
-            isPhotoFocused={props.isPhotoFocused}
-            isRevealed={props.isRevealed}
-            motionRef={props.motionRef}
-            onPolaroidSelect={props.onPolaroidSelect}
-            revealProgress={props.revealProgress}
-            tiltStyle={props.tiltStyle}
-          />
-        </>
+      <PolaroidCamera
+        isPassive={props.phase === "develop"}
+        onShoot={props.onShoot}
+      />
+      {props.phase === "develop" && (
+        <DevelopStage
+          activeIndex={props.activeIndex}
+          isPhotoFocused={props.isPhotoFocused}
+          isRevealed={props.isRevealed}
+          motionRef={props.motionRef}
+          onPolaroidSelect={props.onPolaroidSelect}
+          revealProgress={props.revealProgress}
+          tiltStyle={props.tiltStyle}
+        />
       )}
     </div>
   );

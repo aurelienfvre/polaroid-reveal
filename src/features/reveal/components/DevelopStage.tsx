@@ -7,7 +7,7 @@ type Props = {
   activeIndex: number;
   isPhotoFocused: boolean;
   isRevealed: boolean;
-  motionRef: RefObject<HTMLDivElement | null>;
+  motionRef: RefObject<HTMLButtonElement | null>;
   onPolaroidSelect: () => void;
   revealProgress: number;
   tiltStyle: TiltStyle;
@@ -22,6 +22,7 @@ export function DevelopStage({
   revealProgress,
   tiltStyle,
 }: Props) {
+  const activeMemory = MEMORIES[activeIndex];
   const stackClassName = [
     "c-polaroid-stack",
     isPhotoFocused ? "c-polaroid-stack--is-focused" : "",
@@ -29,19 +30,17 @@ export function DevelopStage({
 
   return (
     <div className={stackClassName} aria-live="polite">
-      {MEMORIES.map((memory, index) => (
-        <PolaroidCard
-          isActive={index === activeIndex}
-          isFocused={index === activeIndex && isPhotoFocused}
-          isRevealed={isRevealed}
-          key={memory.id}
-          memory={memory}
-          motionRef={index === activeIndex ? motionRef : undefined}
-          onSelect={onPolaroidSelect}
-          revealProgress={revealProgress}
-          tiltStyle={index === activeIndex ? tiltStyle : undefined}
-        />
-      ))}
+      <PolaroidCard
+        isActive
+        isFocused={isPhotoFocused}
+        isRevealed={isRevealed}
+        key={activeMemory.id}
+        memory={activeMemory}
+        motionRef={motionRef}
+        onSelect={onPolaroidSelect}
+        revealProgress={revealProgress}
+        tiltStyle={tiltStyle}
+      />
     </div>
   );
 }

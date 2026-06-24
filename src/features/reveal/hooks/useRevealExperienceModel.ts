@@ -12,7 +12,7 @@ import { usePointerTilt } from "@/hooks/usePointerTilt";
 
 export function useRevealExperienceModel(
   stageRef: RefObject<HTMLDivElement | null>,
-  polaroidMotionRef: RefObject<HTMLDivElement | null>,
+  polaroidMotionRef: RefObject<HTMLElement | null>,
 ) {
   const flow = useRevealFlowState();
   const deviceProfile = useDeviceProfile();

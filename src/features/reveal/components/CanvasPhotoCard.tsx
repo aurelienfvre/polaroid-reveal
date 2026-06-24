@@ -25,6 +25,7 @@ export function CanvasPhotoCard({
   photo,
 }: Props) {
   const photoStyle: CanvasPhotoStyle = {
+    "--canvas-photo-image-url": `url("${photo.imageUrl}")`,
     "--canvas-photo-x": `${photo.x}px`,
     "--canvas-photo-y": `${photo.y}px`,
     "--canvas-photo-rotate": `${photo.rotate}deg`,

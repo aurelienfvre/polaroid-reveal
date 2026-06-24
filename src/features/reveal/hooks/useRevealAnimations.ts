@@ -1,6 +1,15 @@
+import { useRef } from "react";
 import type { RefObject } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import {
+  animateCameraEntry,
+  animateCameraReturn,
+  animateCanvasEntry,
+  animateDevelopEntry,
+  animateFocusedPhoto,
+  animateRevealedPhoto,
+} from "@/features/reveal/lib/revealAnimationTimelines";
 import type { ExperiencePhase } from "@/features/reveal/types/revealTypes";
 
 gsap.registerPlugin(useGSAP);
@@ -20,38 +29,31 @@ export function useRevealAnimations({
   phase,
   stageRef,
 }: Params) {
+  const hasEnteredCameraRef = useRef(false);
+  const previousPhaseRef = useRef<ExperiencePhase | null>(null);
+
   useGSAP(
     () => {
+      const previousPhase = previousPhaseRef.current;
+
       if (phase === "camera") {
-        gsap.fromTo(
-          ".c-polaroid-camera",
-          { autoAlpha: 0, y: 32, scale: 0.96 },
-          { autoAlpha: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" },
-        );
+        if (!hasEnteredCameraRef.current) {
+          animateCameraEntry();
+          hasEnteredCameraRef.current = true;
+        } else if (previousPhase === "develop") {
+          animateCameraReturn();
+        }
       }
 
       if (phase === "develop") {
-        gsap.fromTo(
-          ".c-polaroid-card--is-active",
-          { autoAlpha: 0, y: 180, scale: 0.38, rotate: -5 },
-          {
-            autoAlpha: 1,
-            y: 72,
-            scale: 0.46,
-            rotate: -3,
-            duration: 0.9,
-            ease: "expo.out",
-          },
-        );
+        animateDevelopEntry();
       }
 
       if (phase === "canvas") {
-        gsap.fromTo(
-          ".c-memory-canvas",
-          { autoAlpha: 0, scale: 0.96, y: 24 },
-          { autoAlpha: 1, scale: 1, y: 0, duration: 0.9, ease: "power3.out" },
-        );
+        animateCanvasEntry();
       }
+
+      previousPhaseRef.current = phase;
     },
     { scope: stageRef, dependencies: [phase, activeIndex] },
   );
@@ -62,13 +64,7 @@ export function useRevealAnimations({
         return;
       }
 
-      gsap.to(".c-polaroid-card--is-active", {
-        scale: 1,
-        y: 0,
-        rotate: 0,
-        duration: 1.05,
-        ease: "expo.out",
-      });
+      animateFocusedPhoto();
     },
     { scope: stageRef, dependencies: [isPhotoFocused, phase] },
   );
@@ -79,11 +75,7 @@ export function useRevealAnimations({
         return;
       }
 
-      gsap.fromTo(
-        ".c-polaroid-card--is-active",
-        { y: 4, rotate: -0.8 },
-        { y: 0, rotate: 0, duration: 0.7, ease: "elastic.out(1, 0.55)" },
-      );
+      animateRevealedPhoto();
     },
     { scope: stageRef, dependencies: [isRevealed, phase] },
   );

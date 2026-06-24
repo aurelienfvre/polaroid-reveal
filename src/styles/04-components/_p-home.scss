@@ -1,5 +1,5 @@
 .p-home {
-  width: min(100%, 1180px);
+  width: min(100%, 1440px);
   margin-inline: auto;
   padding: clamp(1rem, 4vw, 3rem);
 }
@@ -14,11 +14,12 @@
 
 .p-home__experience--is-camera,
 .p-home__experience--is-develop {
-  grid-template-columns: 1fr;
   min-height: calc(100dvh - clamp(2rem, 8vw, 6rem));
 }
 
 .p-home__stage {
+  display: grid;
+  align-items: center;
   min-width: 0;
 }
 

@@ -29,6 +29,7 @@ export type CanvasPhoto = Memory & {
 };
 
 export type CanvasPhotoStyle = CSSProperties & {
+  "--canvas-photo-image-url": string;
   "--canvas-photo-x": string;
   "--canvas-photo-y": string;
   "--canvas-photo-rotate": string;

@@ -2,12 +2,11 @@
 
 import { useRef } from "react";
 import { ExperienceStage } from "@/features/reveal/components/ExperienceStage";
-import { RevealRoadmap } from "@/features/reveal/components/RevealRoadmap";
 import { useRevealExperienceModel } from "@/features/reveal/hooks/useRevealExperienceModel";
 
 export function RevealExperience() {
   const stageRef = useRef<HTMLDivElement>(null);
-  const polaroidMotionRef = useRef<HTMLDivElement>(null);
+  const polaroidMotionRef = useRef<HTMLButtonElement>(null);
   const model = useRevealExperienceModel(stageRef, polaroidMotionRef);
 
   return (
@@ -19,7 +18,6 @@ export function RevealExperience() {
           <ExperienceStage {...model.stage} motionRef={polaroidMotionRef} />
         </div>
       </section>
-      <RevealRoadmap />
     </main>
   );
 }
