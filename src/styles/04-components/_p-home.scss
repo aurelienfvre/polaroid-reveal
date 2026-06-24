@@ -7,9 +7,10 @@
 .p-home--is-camera,
 .p-home--is-develop {
   width: 100%;
-  min-height: 100dvh;
+  height: 100dvh;
   padding: 0;
   background: var(--grey-500);
+  overflow: hidden;
 }
 
 .p-home__experience {
@@ -22,7 +23,7 @@
 
 .p-home__experience--is-camera,
 .p-home__experience--is-develop {
-  min-height: 100dvh;
+  height: 100dvh;
 }
 
 .p-home__stage {

@@ -1,19 +1,42 @@
 .c-polaroid-camera {
   position: relative;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  justify-items: center;
-  align-items: start;
+  place-items: center;
   width: 100%;
-  min-height: 100dvh;
-  padding: clamp(4.5rem, 16vh, 9rem) var(--space-4) clamp(6rem, 12vh, 8rem);
+  height: 100dvh;
+  padding: clamp(0.5rem, 2vh, 1.5rem) var(--space-4);
   isolation: isolate;
+}
+
+// Pin the shutter button above the bottom edge (over the empty lower part of
+// the stage) so the tall per-model canvas can't push it off-screen.
+.c-polaroid-camera > .c-polaroid-button {
+  position: absolute;
+  bottom: clamp(3rem, 11vh, 7rem);
+  left: 50%;
+  z-index: 4;
+  transform: translateX(-50%);
 }
 
 .c-polaroid-camera__stage {
   position: relative;
-  width: min(430px, 98vw);
-  aspect-ratio: 1.34;
+  width: 100%;
+  max-width: min(560px, 96vw);
+  height: 84vh;
+}
+
+// Per-model framing heights — each 3D model reads at a different size, so the
+// canvas height is tuned per camera.
+.c-polaroid-camera--model-polaroid-636 .c-polaroid-camera__stage {
+  height: 80vh;
+}
+
+.c-polaroid-camera--model-i-2 .c-polaroid-camera__stage {
+  height: 90vh;
+}
+
+.c-polaroid-camera--model-supercolor .c-polaroid-camera__stage {
+  height: 90vh;
 }
 
 .c-polaroid-camera__scene {

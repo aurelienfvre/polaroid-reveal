@@ -6,7 +6,7 @@ import { PolaroidCameraScene } from "@/features/reveal/components/PolaroidCamera
 import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
 import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 
-const EJECT_DURATION = 1980;
+const EJECT_DURATION = 2900;
 
 type Props = {
   isPassive?: boolean;
@@ -33,7 +33,9 @@ export function PolaroidCamera({ isPassive = false, model, onShoot }: Props) {
 
     isEjectingRef.current = true;
     setIsEjecting(true);
-    playHaptic("eject", { intensity: 0.68 });
+    // One continuous motor whir for the whole ejection (distinct from the
+    // movement-driven buzzes while shaking the developed print).
+    playHaptic("ejectMotor", { intensity: 0.6 });
 
     timeoutRef.current = window.setTimeout(() => {
       onShoot();
@@ -64,10 +66,9 @@ export function PolaroidCamera({ isPassive = false, model, onShoot }: Props) {
           aria-label="Take a photo"
         />
       </div>
-      {!isPassive && (
+      {!isPassive && !isEjecting && (
         <PolaroidButton
           onClick={handleShoot}
-          disabled={isEjecting}
           aria-label="Take a photo"
         >
           TAKE A PHOTO

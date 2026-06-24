@@ -56,14 +56,16 @@ export function useDevelopmentController({
         return;
       }
 
+      // Once fully revealed, stop reacting to motion entirely: extra shakes
+      // would keep wobbling/buzzing the print and make it feel like it is "still
+      // moving", which got in the way of tapping to place it and move on.
+      if (hasRevealedRef.current) {
+        return;
+      }
+
       const nextProgress = Math.min(revealProgressRef.current + amount, 1);
 
       if (nextProgress === revealProgressRef.current) {
-        if (hasRevealedRef.current) {
-          playDevelopmentImpulse(polaroidMotionRef.current, amount, impulse);
-          triggerShakeHaptic(impulse);
-        }
-
         return;
       }
 

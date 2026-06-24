@@ -13,6 +13,7 @@ type Props = {
   activeIndex: number;
   cameraModel: PolaroidCameraModel;
   draggingId: string | null;
+  isLastTirage: boolean;
   isPhotoFocused: boolean;
   isRevealed: boolean;
   motionRef: RefObject<HTMLButtonElement | null>;
@@ -24,8 +25,12 @@ type Props = {
   ) => void;
   onCanvasPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
   onCanvasPointerUp: () => void;
+  onChangePhoto: () => void;
   onPolaroidSelect: () => void;
+  onShare: () => void;
   onShoot: () => void;
+  onShowMyPhotos: () => void;
+  onTakeNewPhoto: () => void;
   phase: ExperiencePhase;
   photos: CanvasPhoto[];
   revealProgress: number;
@@ -56,10 +61,15 @@ export function ExperienceStage(props: Props) {
       {props.phase === "develop" && (
         <DevelopStage
           activeIndex={props.activeIndex}
+          isLastTirage={props.isLastTirage}
           isPhotoFocused={props.isPhotoFocused}
           isRevealed={props.isRevealed}
           motionRef={props.motionRef}
+          onChangePhoto={props.onChangePhoto}
           onPolaroidSelect={props.onPolaroidSelect}
+          onShare={props.onShare}
+          onShowMyPhotos={props.onShowMyPhotos}
+          onTakeNewPhoto={props.onTakeNewPhoto}
           revealProgress={props.revealProgress}
           tiltStyle={props.tiltStyle}
         />

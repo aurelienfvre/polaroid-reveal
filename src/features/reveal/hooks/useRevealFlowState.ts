@@ -33,6 +33,7 @@ export function useRevealFlowState() {
     activeMemory: MEMORIES[activeIndex],
     getNextCanvasZIndex,
     isDailyComplete: placedPhotos.length >= DAILY_REVEAL_LIMIT,
+    isLastTirage: placedPhotos.length >= DAILY_REVEAL_LIMIT - 1,
     isPhotoFocused,
     isPhotoFocusedRef,
     nextPhotoNumber: Math.min(placedPhotos.length + 1, DAILY_REVEAL_LIMIT),

@@ -19,19 +19,28 @@ export function animateDevelopEntry(photoExit: PhotoExit) {
   const timeline = gsap.timeline();
 
   timeline.set(".c-polaroid-camera", { autoAlpha: 1, y: 0 });
+  // The developed print fades in where the 3D print emerged from the slot, then
+  // settles into its resting spot below the camera — a continuous handoff rather
+  // than a hard cut between the WebGL print and the DOM card. It stays low and
+  // tilted (camera up top, full print below) until the user taps to focus it.
   timeline.fromTo(
     ".c-polaroid-stack",
     {
       autoAlpha: 0,
       x: photoExit.x,
-      y: photoExit.endY,
+      y: "9vh",
       rotate: photoExit.rotate,
-      zIndex: 5,
+      scale: 0.9,
+      zIndex: 6,
     },
     {
       autoAlpha: 1,
-      duration: 0.24,
-      ease: "power2.out",
+      x: 0,
+      y: "14vh",
+      rotate: -6,
+      scale: 1,
+      duration: 0.62,
+      ease: "power3.out",
     },
   );
 }
@@ -45,11 +54,14 @@ export function animateCanvasEntry() {
 }
 
 export function animateFocusedPhoto() {
+  // Bring the print up into the foreground for shaking/revealing, but keep it
+  // below the on-screen controls (share / change / primary button) so it never
+  // covers them.
   gsap.to(".c-polaroid-stack", {
-    y: "-4vh",
-    scale: 1.58,
+    y: "-6vh",
+    scale: 1.12,
     rotate: 0,
-    zIndex: 8,
+    zIndex: 6,
     duration: 0.82,
     ease: "expo.out",
   });
