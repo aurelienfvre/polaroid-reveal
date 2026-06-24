@@ -43,7 +43,7 @@ export const POLAROID_CAMERA_MODELS: PolaroidCameraModel[] = [
     },
     position: [0, -0.03, 0],
     rotation: [0, 0, 0],
-    src: "/models/Meshy_AI_Polaroid_636_CloseUp_0624142010_image-to-3d-texture.glb",
+    src: "/models/polaroid-636.glb",
     targetSize: 2.64,
   },
   {
@@ -62,7 +62,7 @@ export const POLAROID_CAMERA_MODELS: PolaroidCameraModel[] = [
     },
     position: [0, -0.04, 0],
     rotation: [0, 0, 0],
-    src: "/models/Meshy_AI_Polaroid_I_2_0624130653_image-to-3d-texture.glb",
+    src: "/models/i-2.glb",
     targetSize: 2.5,
   },
   {
@@ -81,7 +81,7 @@ export const POLAROID_CAMERA_MODELS: PolaroidCameraModel[] = [
     },
     position: [0, -0.1, 0],
     rotation: [0, 0, 0],
-    src: "/models/Meshy_AI_Polaroid_Supercolor_1_0624122839_image-to-3d-texture.glb",
+    src: "/models/supercolor.glb",
     targetSize: 2.5,
   },
 ];

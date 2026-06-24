@@ -1,8 +1,6 @@
 .c-polaroid-card__image {
   position: relative;
-  align-self: stretch;
-  height: 202px;
-  min-height: 0;
+  width: 100%;
   flex-shrink: 0;
   overflow: hidden;
   aspect-ratio: 1 / 1;

@@ -36,7 +36,7 @@ export function animateDevelopEntry(photoExit: PhotoExit) {
     {
       autoAlpha: 1,
       x: 0,
-      y: "14vh",
+      y: "16dvh",
       rotate: -6,
       scale: 1,
       duration: 0.62,
@@ -58,8 +58,8 @@ export function animateFocusedPhoto() {
   // below the on-screen controls (share / change / primary button) so it never
   // covers them.
   gsap.to(".c-polaroid-stack", {
-    y: "-6vh",
-    scale: 1.12,
+    y: "-11dvh",
+    scale: 1.5,
     rotate: 0,
     zIndex: 6,
     duration: 0.82,

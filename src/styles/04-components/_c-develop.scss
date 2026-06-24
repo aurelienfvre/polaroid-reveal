@@ -1,5 +1,19 @@
+// Real overlay that shares the board's grid cell with the camera (above it),
+// rather than `display: contents`, which let the print fall into a new grid row
+// below the full-height camera and off-screen.
 .c-develop {
-  display: contents;
+  position: relative;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.c-develop > * {
+  pointer-events: auto;
 }
 
 // Dim everything behind the focused print so it (and its hint/controls) reads
@@ -14,10 +28,13 @@
 }
 
 .c-develop .c-polaroid-stack {
-  // Size the developed print by viewport height as well as width so the camera
-  // above it, the print, and the controls below all fit on one screen.
+  // Centred in the develop overlay; sized by viewport height as well as width
+  // so the camera above it, the print, and the controls below all fit on one
+  // screen.
+  grid-area: 1 / 1;
   z-index: 6;
-  width: min(68vw, 40vh);
+  width: min(46vw, 24dvh);
+  opacity: 1;
 }
 
 // Handwritten cue shown while the print is focused but not yet revealed.

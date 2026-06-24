@@ -1,7 +1,28 @@
 import type { CSSProperties } from "react";
 import type { Memory } from "@/features/reveal/data/memories";
 
-export type ExperiencePhase = "camera" | "develop" | "canvas";
+export type ExperiencePhase = "camera" | "develop" | "personalize" | "canvas";
+
+export type PhotoFilterId =
+  | "original"
+  | "newyork"
+  | "sunset"
+  | "cool"
+  | "vivid"
+  | "noir";
+
+export type PhotoTextureId = "none" | "grain" | "dust";
+
+export type PhotoFontId = "commit" | "indie" | "bricolage";
+
+export type PhotoCustomization = {
+  filterId: PhotoFilterId;
+  textureId: PhotoTextureId;
+  text: string;
+  fontId: PhotoFontId;
+};
+
+export type PersonalizeTab = "filter" | "text" | "texture";
 
 export type TiltStyle = CSSProperties & {
   "--motion-depth-x": string;

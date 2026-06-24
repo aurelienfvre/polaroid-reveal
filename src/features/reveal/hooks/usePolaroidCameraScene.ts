@@ -3,6 +3,7 @@
 import { useEffect, useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
 
 type CameraSceneState = {
@@ -55,12 +56,17 @@ export function usePolaroidCameraScene(
     scene.add(root);
     addLights(scene);
 
-    new GLTFLoader().load(model.src, (gltf) => {
+    const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
+    loader.load(model.src, (gltf) => {
       if (isDisposed) {
         return;
       }
 
       normalizeModel(gltf.scene, model);
+      // Start hidden and let the render loop fade the model in, so it appears
+      // gracefully once decoded instead of popping in after the download.
+      prepareFadeIn(gltf.scene);
       cameraGroup.add(gltf.scene);
     });
 
@@ -79,6 +85,7 @@ export function usePolaroidCameraScene(
       });
       animateCamera(cameraGroup, currentState);
       animateViewCamera(camera, currentState);
+      fadeInModel(cameraGroup);
       renderer.render(scene, camera);
       frameId = window.requestAnimationFrame(render);
     };
@@ -303,11 +310,43 @@ function animateViewCamera(camera: THREE.PerspectiveCamera, state: CameraSceneSt
     FIT_HALF_WIDTH / (tan * Math.max(camera.aspect, 0.0001)),
     FIT_HALF_HEIGHT / tan,
   );
-  const targetY = state.isPassive ? -0.6 : -0.35;
-  const targetZ = state.isPassive ? fitZ + 0.8 : fitZ;
+  // On develop, lift the camera up (more negative Y pushes it higher in frame)
+  // and pull back (×1.4) so it shrinks into the top, leaving the lower screen
+  // for the developed card.
+  const targetY = state.isPassive ? -2.1 : -0.35;
+  const targetZ = state.isPassive ? fitZ * 1.4 : fitZ;
 
   camera.position.y += (targetY - camera.position.y) * 0.06;
   camera.position.z += (targetZ - camera.position.z) * 0.06;
+}
+
+function prepareFadeIn(object: THREE.Object3D) {
+  object.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) {
+      return;
+    }
+
+    const materials = Array.isArray(child.material) ? child.material : [child.material];
+    materials.forEach((material) => {
+      material.transparent = true;
+      material.opacity = 0;
+    });
+  });
+}
+
+function fadeInModel(object: THREE.Object3D) {
+  object.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) {
+      return;
+    }
+
+    const materials = Array.isArray(child.material) ? child.material : [child.material];
+    materials.forEach((material) => {
+      if (material.opacity < 1) {
+        material.opacity = Math.min(material.opacity + 0.05, 1);
+      }
+    });
+  });
 }
 
 function disposeModel(object: THREE.Object3D | null) {
