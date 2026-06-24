@@ -21,4 +21,13 @@
   --font-family-bricolage: bricolage_grotesque;
   --font-family-commit: commit_mono;
   --font-family-indie-flower: indie_flower;
+  --color-paper: var(--grey-500);
+  --color-paper-soft: var(--grey-50);
+  --color-ink: var(--grey-900);
+  --color-ink-muted: rgb(21 21 21 / 62%);
+  --color-line: rgb(21 21 21 / 12%);
+  --color-cyan: var(--blue-500);
+  --color-rose: var(--red-500);
+  --color-amber: var(--yellow-500);
+  --font-body: var(--font-family-bricolage), system-ui, sans-serif;
 }

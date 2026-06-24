@@ -48,8 +48,6 @@ export function PolaroidCard({
       >
         <div className="c-polaroid-card__image">
           <span className="c-polaroid-card__photo" />
-          <span className="c-polaroid-card__light-leak" />
-          <span className="c-polaroid-card__grain" />
         </div>
       </button>
     </article>

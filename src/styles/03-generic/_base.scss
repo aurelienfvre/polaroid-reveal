@@ -1,10 +1,7 @@
 body {
   min-height: 100%;
-  color: var(--color-ink);
-  background:
-    radial-gradient(circle at 1px 1px, rgb(36 31 33 / 12%) 1px, transparent 0)
-      0 0 / 22px 22px,
-    var(--color-paper);
+  color: var(--grey-900);
+  background: var(--grey-500);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricprecision;

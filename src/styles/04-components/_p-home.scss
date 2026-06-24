@@ -9,10 +9,7 @@
   width: 100%;
   min-height: 100dvh;
   padding: 0;
-  background:
-    radial-gradient(circle at 50% 42%, rgb(255 225 91 / 18%), transparent 28%),
-    radial-gradient(circle at 50% 68%, rgb(131 221 232 / 18%), transparent 36%),
-    linear-gradient(145deg, #fbf8ef, #eee6d8 82%);
+  background: var(--grey-500);
 }
 
 .p-home__experience {

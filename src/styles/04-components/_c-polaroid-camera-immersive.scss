@@ -2,13 +2,13 @@
 .p-home__experience--is-develop .c-polaroid-camera {
   position: relative;
   z-index: 3;
-  width: min(430px, 98vw);
+  width: 100%;
   transform-origin: 50% 48%;
 }
 
 @media (min-width: 720px) {
-  .p-home__experience--is-camera .c-polaroid-camera,
-  .p-home__experience--is-develop .c-polaroid-camera {
+  .p-home__experience--is-camera .c-polaroid-camera__stage,
+  .p-home__experience--is-develop .c-polaroid-camera__stage {
     width: min(52vw, 40rem);
   }
 }
@@ -17,8 +17,4 @@
   opacity: 1;
   pointer-events: none;
   transform: none;
-}
-
-.p-home__experience--is-camera .c-polaroid-camera__caption {
-  color: rgb(36 31 33 / 62%);
 }

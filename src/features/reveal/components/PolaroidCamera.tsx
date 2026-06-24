@@ -49,23 +49,37 @@ export function PolaroidCamera({ isPassive = false, model, onShoot }: Props) {
 
   return (
     <div className={className}>
-      <PolaroidCameraScene
-        isEjecting={isEjecting}
-        isPassive={isPassive}
-        model={model}
-      />
-      <button
-        className="c-polaroid-camera__hotspot"
-        type="button"
-        onClick={handleShoot}
-        onPointerUp={handleShoot}
-        disabled={isPassive}
-        aria-label="Sortir une photo Polaroid"
-      />
+      <div className="c-polaroid-camera__stage">
+        <PolaroidCameraScene
+          isEjecting={isEjecting}
+          isPassive={isPassive}
+          model={model}
+        />
+        <button
+          className="c-polaroid-camera__camera-hitbox"
+          type="button"
+          onClick={handleShoot}
+          disabled={isEjecting || isPassive}
+          aria-label="Take a photo"
+        />
+      </div>
       {!isPassive && (
-        <p className="c-polaroid-camera__caption">
-          Clique l&apos;appareil pour ejecter le prochain Polaroid.
-        </p>
+        <button
+          className="c-polaroid-camera__trigger"
+          type="button"
+          onClick={handleShoot}
+          disabled={isEjecting}
+          aria-label="Take a photo"
+        >
+          <span className="c-polaroid-camera__trigger-stripes" aria-hidden="true">
+            <span className="c-polaroid-camera__trigger-stripe c-polaroid-camera__trigger-stripe--red" />
+            <span className="c-polaroid-camera__trigger-stripe c-polaroid-camera__trigger-stripe--orange" />
+            <span className="c-polaroid-camera__trigger-stripe c-polaroid-camera__trigger-stripe--yellow" />
+            <span className="c-polaroid-camera__trigger-stripe c-polaroid-camera__trigger-stripe--green" />
+            <span className="c-polaroid-camera__trigger-stripe c-polaroid-camera__trigger-stripe--blue" />
+          </span>
+          <span className="c-polaroid-camera__trigger-label">TAKE A PHOTO</span>
+        </button>
       )}
     </div>
   );
