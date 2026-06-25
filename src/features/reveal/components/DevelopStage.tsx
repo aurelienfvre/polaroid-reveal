@@ -1,12 +1,13 @@
 import type { RefObject } from "react";
 import { MEMORIES } from "@/features/reveal/data/memories";
 import { DevelopControls } from "@/features/reveal/components/DevelopControls";
+import { SkipIcon } from "@/features/reveal/components/PersonalizeIcons";
 import { PolaroidCard } from "@/features/reveal/components/PolaroidCard";
 import type { TiltStyle } from "@/features/reveal/types/revealTypes";
 
 type Props = {
   activeIndex: number;
-  canChangePhoto: boolean;
+  changesRemaining: number;
   isLastTirage: boolean;
   isPhotoFocused: boolean;
   isRevealed: boolean;
@@ -15,6 +16,7 @@ type Props = {
   onPolaroidSelect: () => void;
   onShare: () => void;
   onShowMyPhotos: () => void;
+  onSkipReveal: () => void;
   onTakeNewPhoto: () => void;
   revealProgress: number;
   tiltStyle: TiltStyle;
@@ -22,7 +24,7 @@ type Props = {
 
 export function DevelopStage({
   activeIndex,
-  canChangePhoto,
+  changesRemaining,
   isLastTirage,
   isPhotoFocused,
   isRevealed,
@@ -31,6 +33,7 @@ export function DevelopStage({
   onPolaroidSelect,
   onShare,
   onShowMyPhotos,
+  onSkipReveal,
   onTakeNewPhoto,
   revealProgress,
   tiltStyle,
@@ -51,17 +54,24 @@ export function DevelopStage({
           motionRef={motionRef}
           onSelect={onPolaroidSelect}
           revealProgress={revealProgress}
+          showHelper={!isPhotoFocused && !isRevealed}
           tiltStyle={tiltStyle}
         />
       </div>
 
       {isPhotoFocused && !isRevealed && (
-        <p className="c-develop__hint">Shake to reveal</p>
+        <>
+          <p className="c-develop__hint">Shake to reveal</p>
+          <button className="c-develop__skip" type="button" onClick={onSkipReveal}>
+            skip
+            <SkipIcon />
+          </button>
+        </>
       )}
 
       {isPhotoFocused && isRevealed && (
         <DevelopControls
-          canChangePhoto={canChangePhoto}
+          changesRemaining={changesRemaining}
           isLastTirage={isLastTirage}
           onChangePhoto={onChangePhoto}
           onShare={onShare}

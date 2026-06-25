@@ -39,6 +39,7 @@ export function useRevealFlowState() {
     activeMemory: MEMORIES[activeIndex],
     canChangePhoto: changeCount < MAX_PHOTO_CHANGES,
     changeCount,
+    changesRemaining: Math.max(MAX_PHOTO_CHANGES - changeCount, 0),
     getNextCanvasZIndex,
     isDailyComplete: placedPhotos.length >= DAILY_REVEAL_LIMIT,
     isLastTirage: placedPhotos.length >= DAILY_REVEAL_LIMIT - 1,

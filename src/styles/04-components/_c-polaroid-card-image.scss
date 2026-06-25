@@ -25,6 +25,33 @@
   opacity: 1;
 }
 
+// Pulsing "take it" hint shown only while the print is out but not yet tapped.
+.c-polaroid-card__helper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20%;
+  aspect-ratio: 1;
+  border-radius: 99px;
+  border: 1px solid var(--grey-50, #fff);
+  background: rgb(255 255 255 / 40%);
+  pointer-events: none;
+  animation: c-polaroid-helper-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes c-polaroid-helper-pulse {
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.22);
+    opacity: 1;
+  }
+}
+
 @media (max-width: 720px) {
   .c-polaroid-card__image {
     min-height: 0;

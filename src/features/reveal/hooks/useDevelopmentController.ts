@@ -86,10 +86,23 @@ export function useDevelopmentController({
     [canDevelopRef, phaseRef, polaroidMotionRef, triggerHaptic, triggerShakeHaptic],
   );
 
+  const revealNow = useCallback(() => {
+    if (hasRevealedRef.current) {
+      return;
+    }
+
+    revealProgressRef.current = 1;
+    hasRevealedRef.current = true;
+    setRevealProgress(1);
+    resetDevelopmentImpulse(polaroidMotionRef.current);
+    triggerHaptic("reveal", { intensity: 0.8 });
+  }, [polaroidMotionRef, triggerHaptic]);
+
   return {
     developMemory,
     isRevealed: revealProgress >= 1,
     resetDevelopmentState,
+    revealNow,
     revealProgress,
   };
 }

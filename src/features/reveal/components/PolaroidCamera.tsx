@@ -98,7 +98,7 @@ export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce =
           onClick={handleShoot}
           aria-label="Take a photo"
         >
-          TAKE A PHOTO
+          SNAP IT
         </PolaroidButton>
       )}
     </div>

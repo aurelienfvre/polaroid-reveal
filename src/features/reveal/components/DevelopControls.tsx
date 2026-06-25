@@ -1,8 +1,8 @@
-import { Share } from "lucide-react";
+import { ExportIcon, RerollIcon } from "@/features/reveal/components/PersonalizeIcons";
 import { PolaroidButton } from "@/features/reveal/components/PolaroidButton";
 
 type Props = {
-  canChangePhoto: boolean;
+  changesRemaining: number;
   isLastTirage: boolean;
   onChangePhoto: () => void;
   onShare: () => void;
@@ -11,13 +11,15 @@ type Props = {
 };
 
 export function DevelopControls({
-  canChangePhoto,
+  changesRemaining,
   isLastTirage,
   onChangePhoto,
   onShare,
   onShowMyPhotos,
   onTakeNewPhoto,
 }: Props) {
+  const canReroll = changesRemaining > 0;
+
   return (
     <>
       <button
@@ -26,7 +28,7 @@ export function DevelopControls({
         onClick={onShare}
         aria-label="Partager cette photo"
       >
-        <Share aria-hidden="true" />
+        <ExportIcon />
       </button>
 
       <div className="c-develop__actions">
@@ -34,15 +36,14 @@ export function DevelopControls({
           className="c-develop__change"
           type="button"
           onClick={onChangePhoto}
-          disabled={isLastTirage || !canChangePhoto}
+          disabled={!canReroll}
         >
-          Change this photo
+          <RerollIcon />
+          {canReroll ? `${changesRemaining} reroll left` : "no reroll left"}
         </button>
 
-        <PolaroidButton
-          onClick={isLastTirage ? onShowMyPhotos : onTakeNewPhoto}
-        >
-          {isLastTirage ? "SHOW MY PHOTOS" : "TAKE A NEW PHOTO"}
+        <PolaroidButton onClick={isLastTirage ? onShowMyPhotos : onTakeNewPhoto}>
+          {isLastTirage ? "SHOW ALL SNAPS" : "TAKE A NEW SNAP"}
         </PolaroidButton>
       </div>
     </>

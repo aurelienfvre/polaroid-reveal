@@ -10,6 +10,7 @@ type Props = {
   motionRef?: RefObject<HTMLButtonElement | null>;
   onSelect: () => void;
   revealProgress: number;
+  showHelper?: boolean;
   tiltStyle?: TiltStyle;
 };
 
@@ -21,6 +22,7 @@ export function PolaroidCard({
   motionRef,
   onSelect,
   revealProgress,
+  showHelper = false,
   tiltStyle,
 }: Props) {
   const paperStyle = {
@@ -48,6 +50,7 @@ export function PolaroidCard({
       >
         <div className="c-polaroid-card__image">
           <span className="c-polaroid-card__photo" />
+          {showHelper && <span className="c-polaroid-card__helper" aria-hidden="true" />}
         </div>
       </button>
     </article>
