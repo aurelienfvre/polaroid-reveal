@@ -16,6 +16,8 @@ export const PHOTO_FILTERS: ReadonlyArray<{
   { id: "cool", label: "Cool", css: "saturate(1.1) hue-rotate(-12deg) brightness(1.06)" },
   { id: "vivid", label: "Vivid", css: "saturate(1.65) contrast(1.12)" },
   { id: "noir", label: "B&N", css: "grayscale(1) contrast(1.4) brightness(0.92)" },
+  { id: "amber", label: "Amber", css: "sepia(0.42) saturate(1.24) brightness(1.05)" },
+  { id: "rose", label: "Rose", css: "saturate(1.28) hue-rotate(318deg) contrast(1.06)" },
 ];
 
 export const PHOTO_TEXTURES: ReadonlyArray<{

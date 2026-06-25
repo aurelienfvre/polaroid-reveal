@@ -62,6 +62,24 @@ export function SkipIcon({ className }: IconProps) {
   );
 }
 
+export function SelectFrameIcon({ className }: IconProps) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 50 50"
+      fill="none"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M49 13V5C49 2.79086 47.2091 1 45 1H5C2.79086 1 1 2.79086 1 5L1 13M49 37V45C49 47.2091 47.2091 49 45 49H5C2.79086 49 1 47.2091 1 45V37"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
 export function CheckIcon({ className }: IconProps) {
   return (
     <svg {...SVG_PROPS} className={className}>

@@ -9,7 +9,9 @@ export type PhotoFilterId =
   | "sunset"
   | "cool"
   | "vivid"
-  | "noir";
+  | "noir"
+  | "amber"
+  | "rose";
 
 export type PhotoTextureId = "none" | "grain" | "dust";
 

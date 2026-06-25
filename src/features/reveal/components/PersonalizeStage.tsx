@@ -10,6 +10,7 @@ import {
   type SetStateAction,
 } from "react";
 import { PersonalizePhotoCard } from "@/features/reveal/components/PersonalizePhotoCard";
+import { PersonalizeFilterPanel } from "@/features/reveal/components/PersonalizeFilterPanel";
 import {
   CheckIcon,
   FilterIcon,
@@ -18,10 +19,8 @@ import {
 } from "@/features/reveal/components/PersonalizeIcons";
 import { usePhotoPersonalization } from "@/features/reveal/hooks/usePhotoPersonalization";
 import {
-  PHOTO_FILTERS,
   PHOTO_FONTS,
   PHOTO_TEXTURES,
-  getFilterCss,
 } from "@/features/reveal/lib/photoFilters";
 import type {
   CanvasPhoto,
@@ -74,8 +73,13 @@ export function PersonalizeStage({
     }
   };
 
+  const className = [
+    "c-perso",
+    perso.activeTab ? `c-perso--is-${perso.activeTab}` : "",
+  ].filter(Boolean).join(" ");
+
   return (
-    <section className="c-perso">
+    <section className={className}>
       <h1 className="c-perso__title">Personnalisation photo</h1>
 
       <div
@@ -114,33 +118,11 @@ export function PersonalizeStage({
       </div>
 
       {perso.activeTab === "filter" && perso.activePhoto && (
-        <div className="c-perso__panel c-perso__panel--filter">
-          <span className="c-perso__panel-label">
-            {PHOTO_FILTERS.find((f) => f.id === perso.activeCustomization.filterId)?.label}
-          </span>
-          <div className="c-perso__filters">
-            {PHOTO_FILTERS.map((filter) => (
-              <button
-                className={[
-                  "c-perso__filter",
-                  perso.activeCustomization.filterId === filter.id ? "is-selected" : "",
-                ].filter(Boolean).join(" ")}
-                key={filter.id}
-                type="button"
-                onClick={() => perso.updateActive({ filterId: filter.id })}
-              >
-                <span
-                  className="c-perso__filter-thumb"
-                  style={{
-                    backgroundImage: `url("${perso.activePhoto!.imageUrl}")`,
-                    filter: getFilterCss(filter.id),
-                  }}
-                />
-                <span className="c-perso__filter-frame" aria-hidden="true" />
-              </button>
-            ))}
-          </div>
-        </div>
+        <PersonalizeFilterPanel
+          customization={perso.activeCustomization}
+          imageUrl={perso.activePhoto.imageUrl}
+          onChange={(filterId) => perso.updateActive({ filterId })}
+        />
       )}
 
       {perso.activeTab === "text" && (

@@ -26,7 +26,7 @@ export function DevelopControls({
         className="c-develop__share"
         type="button"
         onClick={onShare}
-        aria-label="Partager cette photo"
+        aria-label="Exporter ce Polaroid"
       >
         <ExportIcon />
       </button>

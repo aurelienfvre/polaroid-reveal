@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { MEMORIES } from "@/features/reveal/data/memories";
 import type { Memory } from "@/features/reveal/data/memories";
 import { getCanvasPhoto } from "@/features/reveal/lib/canvasPhotos";
+import { exportPolaroidImage } from "@/features/reveal/lib/exportPolaroidImage";
 import type { DeviceProfile } from "@/hooks/useDeviceProfile";
 import type { CanvasPhoto, ExperiencePhase } from "@/features/reveal/types/revealTypes";
 import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
@@ -117,22 +118,10 @@ export function usePhotoFlowActions(params: Params) {
   };
 
   const handleShare = async () => {
-    const memory = params.activeMemory;
-    const shareData = {
-      title: memory.title,
-      text: `${memory.title} — ${memory.caption}`,
-      url: memory.imageUrl,
-    };
-
     try {
-      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
-        await navigator.share(shareData);
-        return;
-      }
-
-      await navigator.clipboard?.writeText(memory.imageUrl);
+      await exportPolaroidImage(params.activeMemory);
     } catch {
-      // User dismissed the share sheet, or the platform refused — nothing to do.
+      // Export can fail if a remote image blocks canvas access.
     }
   };
 
