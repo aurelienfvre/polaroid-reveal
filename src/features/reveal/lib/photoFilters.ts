@@ -23,26 +23,44 @@ export const PHOTO_FILTERS: ReadonlyArray<{
 export const PHOTO_TEXTURES: ReadonlyArray<{
   id: PhotoTextureId;
   label: string;
-  opacity: number;
+  defaultIntensity: number;
 }> = [
-  { id: "none", label: "Aucune", opacity: 0 },
-  { id: "grain", label: "Grain", opacity: 0.22 },
-  { id: "dust", label: "Poussiere", opacity: 0.36 },
+  { id: "none", label: "Aucune", defaultIntensity: 0 },
+  { id: "grain", label: "Grain", defaultIntensity: 0.28 },
+  { id: "dust", label: "Poussiere", defaultIntensity: 0.38 },
 ];
 
 export const PHOTO_FONTS: ReadonlyArray<{
   id: PhotoFontId;
   label: string;
-  cssVar: string;
+  css: string;
 }> = [
-  { id: "indie", label: "Manuscrit", cssVar: "--font-family-indie-flower" },
-  { id: "commit", label: "Mono", cssVar: "--font-family-commit" },
-  { id: "bricolage", label: "Grotesk", cssVar: "--font-family-bricolage" },
+  {
+    id: "bricolage",
+    label: "Bricolage",
+    css: 'var(--font-family-bricolage, "Bricolage Grotesque"), sans-serif',
+  },
+  {
+    id: "indie",
+    label: "Indie Flower",
+    css: 'var(--font-family-indie_flower, "Indie Flower"), cursive',
+  },
+  {
+    id: "serif",
+    label: "Serif",
+    css: '"Libertinus Serif Display", Georgia, "Times New Roman", serif',
+  },
+  {
+    id: "commit",
+    label: "Commit Mono",
+    css: 'var(--font-family-commit, commit_mono), monospace',
+  },
 ];
 
 export const DEFAULT_CUSTOMIZATION: PhotoCustomization = {
   filterId: "original",
   textureId: "none",
+  textureIntensity: 0.3,
   text: "",
   fontId: "indie",
 };
@@ -51,10 +69,18 @@ export function getFilterCss(id: PhotoFilterId) {
   return PHOTO_FILTERS.find((filter) => filter.id === id)?.css ?? "none";
 }
 
-export function getTextureOpacity(id: PhotoTextureId) {
-  return PHOTO_TEXTURES.find((texture) => texture.id === id)?.opacity ?? 0;
+export function getTextureOpacity(id: PhotoTextureId, intensity = 0.3) {
+  if (id === "none") {
+    return 0;
+  }
+
+  return Math.min(Math.max(intensity, 0), 1);
 }
 
-export function getFontVar(id: PhotoFontId) {
-  return PHOTO_FONTS.find((font) => font.id === id)?.cssVar ?? "--font-family-indie-flower";
+export function getFontCss(id: PhotoFontId) {
+  return PHOTO_FONTS.find((font) => font.id === id)?.css ?? PHOTO_FONTS[0].css;
+}
+
+export function getTextureDefaultIntensity(id: PhotoTextureId) {
+  return PHOTO_TEXTURES.find((texture) => texture.id === id)?.defaultIntensity ?? 0.3;
 }

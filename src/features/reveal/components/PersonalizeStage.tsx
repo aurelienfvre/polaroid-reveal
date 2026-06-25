@@ -11,6 +11,7 @@ import {
 } from "react";
 import { PersonalizePhotoCard } from "@/features/reveal/components/PersonalizePhotoCard";
 import { PersonalizeFilterPanel } from "@/features/reveal/components/PersonalizeFilterPanel";
+import { PersonalizeTexturePanel } from "@/features/reveal/components/PersonalizeTexturePanel";
 import {
   CheckIcon,
   FilterIcon,
@@ -18,9 +19,9 @@ import {
   TextureIcon,
 } from "@/features/reveal/components/PersonalizeIcons";
 import { usePhotoPersonalization } from "@/features/reveal/hooks/usePhotoPersonalization";
+import { usePersonalizeSwipeHint } from "@/features/reveal/hooks/usePersonalizeSwipeHint";
 import {
   PHOTO_FONTS,
-  PHOTO_TEXTURES,
 } from "@/features/reveal/lib/photoFilters";
 import type {
   CanvasPhoto,
@@ -43,10 +44,12 @@ export function PersonalizeStage({
   photos,
 }: Props) {
   const perso = usePhotoPersonalization(photos, customizations, onCustomizationsChange);
+  const swipeHint = usePersonalizeSwipeHint(photos.length);
   const [dragX, setDragX] = useState(0);
   const dragRef = useRef<{ startX: number; active: boolean }>({ startX: 0, active: false });
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    swipeHint.registerSwipeActivity();
     dragRef.current = { startX: event.clientX, active: true };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -55,6 +58,7 @@ export function PersonalizeStage({
     if (!dragRef.current.active) {
       return;
     }
+    swipeHint.registerSwipeActivity();
     setDragX(event.clientX - dragRef.current.startX);
   };
 
@@ -78,10 +82,18 @@ export function PersonalizeStage({
     perso.activeTab ? `c-perso--is-${perso.activeTab}` : "",
   ].filter(Boolean).join(" ");
 
+  const updateActive = (patch: Partial<PhotoCustomization>) => {
+    swipeHint.registerSwipeActivity();
+    perso.updateActive(patch);
+  };
+
+  const toggleTool = (tab: Parameters<typeof perso.toggleTab>[0]) => {
+    swipeHint.registerSwipeActivity();
+    perso.toggleTab(tab);
+  };
+
   return (
     <section className={className}>
-      <h1 className="c-perso__title">Personnalisation photo</h1>
-
       <div
         className="c-perso__stage"
         onPointerDown={handlePointerDown}
@@ -109,8 +121,11 @@ export function PersonalizeStage({
             <PersonalizePhotoCard
               customization={perso.getCustomization(photo.id)}
               isActive={isActive}
+              isTextActive={perso.activeTab === "text"}
               key={photo.id}
+              onTextChange={(text) => updateActive({ text })}
               photo={photo}
+              showSwipeHelper={isActive && !perso.activeTab && swipeHint.showSwipeHint}
               stackStyle={stackStyle}
             />
           );
@@ -121,20 +136,12 @@ export function PersonalizeStage({
         <PersonalizeFilterPanel
           customization={perso.activeCustomization}
           imageUrl={perso.activePhoto.imageUrl}
-          onChange={(filterId) => perso.updateActive({ filterId })}
+          onChange={(filterId) => updateActive({ filterId })}
         />
       )}
 
       {perso.activeTab === "text" && (
         <div className="c-perso__panel c-perso__panel--text">
-          <input
-            className="c-perso__text-input"
-            type="text"
-            maxLength={28}
-            placeholder="Ajoute une legende…"
-            value={perso.activeCustomization.text}
-            onChange={(event) => perso.updateActive({ text: event.target.value })}
-          />
           <div className="c-perso__fonts">
             {PHOTO_FONTS.map((font) => (
               <button
@@ -144,44 +151,35 @@ export function PersonalizeStage({
                 ].filter(Boolean).join(" ")}
                 key={font.id}
                 type="button"
-                style={{ fontFamily: `var(${font.cssVar}), cursive` }}
-                onClick={() => perso.updateActive({ fontId: font.id })}
+                aria-label={font.label}
+                style={{ fontFamily: font.css }}
+                onClick={() => updateActive({ fontId: font.id })}
               >
-                {font.label}
+                Aa
               </button>
             ))}
           </div>
         </div>
       )}
 
-      {perso.activeTab === "texture" && (
-        <div className="c-perso__panel c-perso__panel--texture">
-          {PHOTO_TEXTURES.map((texture) => (
-            <button
-              className={[
-                "c-perso__texture",
-                perso.activeCustomization.textureId === texture.id ? "is-selected" : "",
-              ].filter(Boolean).join(" ")}
-              key={texture.id}
-              type="button"
-              onClick={() => perso.updateActive({ textureId: texture.id })}
-            >
-              {texture.label}
-            </button>
-          ))}
-        </div>
+      {perso.activeTab === "texture" && perso.activePhoto && (
+        <PersonalizeTexturePanel
+          customization={perso.activeCustomization}
+          imageUrl={perso.activePhoto.imageUrl}
+          onChange={updateActive}
+        />
       )}
 
       <div className="c-perso__toolbar">
         <span className="c-perso__toolbar-stripe" aria-hidden="true" />
         <div className="c-perso__tools">
-          <PersoTool active={perso.activeTab === "filter"} label="Filter" onClick={() => perso.toggleTab("filter")}>
+          <PersoTool active={perso.activeTab === "filter"} label="Filter" onClick={() => toggleTool("filter")}>
             <FilterIcon />
           </PersoTool>
-          <PersoTool active={perso.activeTab === "text"} label="Text" onClick={() => perso.toggleTab("text")}>
+          <PersoTool active={perso.activeTab === "text"} label="Text" onClick={() => toggleTool("text")}>
             <TextIcon />
           </PersoTool>
-          <PersoTool active={perso.activeTab === "texture"} label="Texture" onClick={() => perso.toggleTab("texture")}>
+          <PersoTool active={perso.activeTab === "texture"} label="Texture" onClick={() => toggleTool("texture")}>
             <TextureIcon />
           </PersoTool>
         </div>

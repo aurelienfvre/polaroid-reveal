@@ -43,7 +43,7 @@ export function useSessionActions({
     resetPointerTilt();
     resetDevelopmentState();
     setPlacedPhotos([]);
-    setActiveIndex(0);
+    setActiveIndex(Math.floor(Math.random() * MEMORIES.length));
     setPhase("camera");
   };
 

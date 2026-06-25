@@ -57,16 +57,20 @@ export function usePhotoFlowActions(params: Params) {
     triggerHaptic("snap", { intensity: 0.32 });
   };
 
-  const placeCurrentPhoto = () => {
-    if (params.placedPhotos.some((photo) => photo.id === params.activeMemory.id)) {
-      return;
-    }
-
+  const placeCurrentPhoto = (preferredMemory = params.activeMemory) => {
     const nextZIndex = params.getNextCanvasZIndex();
-    params.setPlacedPhotos((photos) => [
-      ...photos,
-      getCanvasPhoto(params.activeMemory, photos.length, nextZIndex),
-    ]);
+    params.setPlacedPhotos((photos) => {
+      const memory = getPlaceableMemory(preferredMemory, photos);
+
+      if (!memory) {
+        return photos;
+      }
+
+      return [
+        ...photos,
+        getCanvasPhoto(memory, photos.length, nextZIndex),
+      ];
+    });
   };
 
   // Swap the developed print for another random memory without leaving the
@@ -77,7 +81,9 @@ export function usePhotoFlowActions(params: Params) {
     }
 
     params.setChangeCount((count) => count + 1);
-    params.setActiveIndex((currentIndex) => pickAnotherIndex(currentIndex));
+    params.setActiveIndex((currentIndex) => (
+      pickUnplacedIndex(currentIndex, params.placedPhotos)
+    ));
     triggerHaptic("snap", { intensity: 0.3 });
   };
 
@@ -87,11 +93,17 @@ export function usePhotoFlowActions(params: Params) {
       return;
     }
 
-    placeCurrentPhoto();
+    const placedMemory = getPlaceableMemory(params.activeMemory, params.placedPhotos);
+    placeCurrentPhoto(placedMemory ?? params.activeMemory);
     params.resetPointerTilt();
     params.resetDevelopmentState();
     params.setPhotoFocused(false);
-    params.setActiveIndex((currentIndex) => pickAnotherIndex(currentIndex));
+    params.setActiveIndex((currentIndex) => (
+      pickUnplacedIndex(currentIndex, [
+        ...params.placedPhotos,
+        placedMemory ?? params.activeMemory,
+      ])
+    ));
     triggerHaptic("snap", { intensity: 0.5 });
     params.setPhase("camera");
     // Re-fire the eject straight away so the user doesn't have to tap again.
@@ -136,11 +148,31 @@ export function usePhotoFlowActions(params: Params) {
   };
 }
 
-function pickAnotherIndex(currentIndex: number) {
-  if (MEMORIES.length <= 1) {
+function pickUnplacedIndex(
+  currentIndex: number,
+  placedPhotos: ReadonlyArray<{ id: string }>,
+) {
+  const placedIds = new Set(placedPhotos.map((photo) => photo.id));
+  const candidates = MEMORIES
+    .map((memory, index) => ({ id: memory.id, index }))
+    .filter((memory) => memory.index !== currentIndex && !placedIds.has(memory.id));
+
+  if (candidates.length === 0) {
     return currentIndex;
   }
 
-  const offset = 1 + Math.floor(Math.random() * (MEMORIES.length - 1));
-  return (currentIndex + offset) % MEMORIES.length;
+  return candidates[Math.floor(Math.random() * candidates.length)].index;
+}
+
+function getPlaceableMemory(
+  activeMemory: Memory,
+  placedPhotos: ReadonlyArray<{ id: string }>,
+) {
+  const placedIds = new Set(placedPhotos.map((photo) => photo.id));
+
+  if (!placedIds.has(activeMemory.id)) {
+    return activeMemory;
+  }
+
+  return MEMORIES.find((memory) => !placedIds.has(memory.id));
 }

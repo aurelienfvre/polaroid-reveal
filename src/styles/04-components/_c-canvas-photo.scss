@@ -69,9 +69,21 @@
 .c-canvas-photo__grain {
   position: absolute;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
   pointer-events: none;
+}
+
+.c-canvas-photo__grain--grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.c-canvas-photo__grain--dust {
+  background-image:
+    radial-gradient(circle at 18% 28%, rgb(255 255 255 / 92%) 0 1px, transparent 2px),
+    radial-gradient(circle at 72% 34%, rgb(0 0 0 / 72%) 0 1px, transparent 2px),
+    radial-gradient(circle at 38% 72%, rgb(255 255 255 / 82%) 0 1px, transparent 2px),
+    radial-gradient(circle at 86% 78%, rgb(0 0 0 / 62%) 0 1px, transparent 2px);
+  background-size: 92px 92px, 128px 128px, 110px 110px, 146px 146px;
 }
 
 .c-canvas-photo__caption {
@@ -80,6 +92,10 @@
   font-size: 1.05rem;
   line-height: 1.15;
   text-align: center;
+}
+
+.c-canvas-photo__caption--empty {
+  display: block;
 }
 
 .c-canvas-photo__title {

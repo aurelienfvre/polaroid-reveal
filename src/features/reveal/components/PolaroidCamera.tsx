@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { PolaroidButton } from "@/features/reveal/components/PolaroidButton";
 import { PolaroidCameraScene } from "@/features/reveal/components/PolaroidCameraScene";
 import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
@@ -19,9 +19,11 @@ type Props = {
 
 export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce = 0 }: Props) {
   const [isEjecting, setIsEjecting] = useState(false);
+  const [hideActionButton, setHideActionButton] = useState(false);
   const isEjectingRef = useRef(false);
   const timeoutRef = useRef<number | null>(null);
   const startTimeoutRef = useRef<number | null>(null);
+  const lastNonceRef = useRef(shootNonce);
   const playHaptic = usePolaroidHaptics();
   const className = [
     "c-polaroid-camera",
@@ -30,7 +32,7 @@ export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce =
     isEjecting ? "c-polaroid-camera--is-ejecting" : "",
   ].filter(Boolean).join(" ");
 
-  const handleShoot = () => {
+  const handleShoot = ({ hideButton = false } = {}) => {
     if (isPassive || isEjectingRef.current || !onShoot) {
       return;
     }
@@ -38,6 +40,7 @@ export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce =
     // Lock immediately so a second tap is ignored, but leave the button visible
     // long enough for its stripe animation to play before the eject begins.
     isEjectingRef.current = true;
+    setHideActionButton(hideButton);
 
     startTimeoutRef.current = window.setTimeout(() => {
       setIsEjecting(true);
@@ -49,20 +52,20 @@ export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce =
         onShoot();
         isEjectingRef.current = false;
         setIsEjecting(false);
+        setHideActionButton(false);
       }, EJECT_DURATION);
     }, SHOOT_DELAY);
   };
 
   // Auto-fire the eject when the parent bumps the nonce (e.g. "Take a new
   // photo"), so the user doesn't have to press the button again.
-  const lastNonceRef = useRef(shootNonce);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (shootNonce === lastNonceRef.current) {
       return;
     }
     lastNonceRef.current = shootNonce;
     if (!isPassive) {
-      handleShoot();
+      handleShoot({ hideButton: true });
     }
     // handleShoot is stable enough for this fire-and-forget trigger.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -88,14 +91,14 @@ export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce =
         <button
           className="c-polaroid-camera__camera-hitbox"
           type="button"
-          onClick={handleShoot}
-          disabled={isEjecting || isPassive}
+          onClick={() => handleShoot()}
+          disabled={isEjecting || isPassive || hideActionButton}
           aria-label="Take a photo"
         />
       </div>
-      {!isPassive && !isEjecting && (
+      {!isPassive && !isEjecting && !hideActionButton && (
         <PolaroidButton
-          onClick={handleShoot}
+          onClick={() => handleShoot()}
           aria-label="Take a photo"
         >
           SNAP IT
