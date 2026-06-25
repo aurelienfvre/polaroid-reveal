@@ -82,6 +82,8 @@ export type BoardItem = {
   rotate: number;
   scale: number;
   zIndex: number;
+  width?: number;
+  height?: number;
   /** Photo items reference the source memory so filters/captions stay in sync. */
   memoryId?: string;
   imageUrl?: string;
@@ -93,7 +95,7 @@ export type BoardItem = {
   /** Fill colour for text and shapes; stroke colour for drawings. */
   color?: string;
   shape?: BoardShape;
-  /** Freehand drawing: SVG path (board-space) + stroke params. */
+  /** Freehand drawing: local SVG path + stroke params. */
   d?: string;
   strokeWidth?: number;
   opacity?: number;

@@ -25,8 +25,8 @@ export const BOARD_DEFAULT_COLOR = BOARD_COLORS[0];
 
 /** The two scotch pieces you can drop — same tape, different size. */
 export const SCOTCH_PIECES = [
-  { id: "small", src: "/images/scotch_photo.png", scale: 0.7 },
-  { id: "big", src: "/images/scotch_photo.png", scale: 1.15 },
+  { id: "small", src: "/images/scotch_photo.png", scale: 0.75 },
+  { id: "big", src: "/images/scotch_photo.png", scale: 1 },
 ] as const;
 
 /**

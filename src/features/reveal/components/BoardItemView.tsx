@@ -35,6 +35,29 @@ type PinchState = {
   lastMidY: number;
 };
 
+const DESKTOP_RESIZE_HANDLES = [
+  {
+    id: "top-left",
+    label: "Redimensionner haut gauche",
+    transform: "translate(-50%, -50%)",
+  },
+  {
+    id: "top-right",
+    label: "Redimensionner haut droit",
+    transform: "translate(50%, -50%)",
+  },
+  {
+    id: "bottom-left",
+    label: "Redimensionner bas gauche",
+    transform: "translate(-50%, 50%)",
+  },
+  {
+    id: "bottom-right",
+    label: "Redimensionner bas droit",
+    transform: "translate(50%, 50%)",
+  },
+] as const;
+
 export function BoardItemView({
   item,
   customization,
@@ -51,6 +74,7 @@ export function BoardItemView({
   const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const pinchRef = useRef<PinchState | null>(null);
   const rotateRef = useRef<{ cx: number; cy: number; startAngle: number; startRotate: number } | null>(null);
+  const resizeRef = useRef<{ cx: number; cy: number; startDist: number; startScale: number } | null>(null);
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     // Items own their gestures so board tap-to-deselect does not steal focus.
@@ -143,6 +167,41 @@ export function BoardItemView({
     rotateRef.current = null;
   };
 
+  const handleResizeDown = (event: PointerEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    onSelect(item.id);
+    const host = event.currentTarget.closest(".c-board-item") as HTMLElement | null;
+    if (!host) {
+      return;
+    }
+    const rect = host.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    resizeRef.current = {
+      cx,
+      cy,
+      startDist: Math.max(Math.hypot(event.clientX - cx, event.clientY - cy), 1),
+      startScale: item.scale,
+    };
+  };
+
+  const handleResizeMove = (event: PointerEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    const state = resizeRef.current;
+    if (!state) {
+      return;
+    }
+    const dist = Math.hypot(event.clientX - state.cx, event.clientY - state.cy);
+    const nextScale = (state.startScale * dist) / state.startDist;
+    onScale(item.id, Math.min(Math.max(nextScale, 0.3), 5));
+  };
+
+  const handleResizeUp = (event: PointerEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    resizeRef.current = null;
+  };
+
   const style: CSSProperties = {
     left: `${item.x}px`,
     top: `${item.y}px`,
@@ -209,6 +268,19 @@ export function BoardItemView({
             onPointerUp={handleRotateUp}
             onPointerCancel={handleRotateUp}
           />
+          {DESKTOP_RESIZE_HANDLES.map((handle) => (
+            <button
+              key={handle.id}
+              type="button"
+              className={`c-board-item__resize-handle c-board-item__resize-handle--${handle.id}`}
+              aria-label={handle.label}
+              style={{ transform: `${handle.transform} scale(${inverseScale})` }}
+              onPointerDown={handleResizeDown}
+              onPointerMove={handleResizeMove}
+              onPointerUp={handleResizeUp}
+              onPointerCancel={handleResizeUp}
+            />
+          ))}
         </>
       )}
     </div>
@@ -255,6 +327,30 @@ function ItemBody({
         className={`c-board-shape c-board-shape--${item.shape ?? "rect"}`}
         style={{ background: item.color }}
       />
+    );
+  }
+
+  if (item.kind === "drawing") {
+    const width = item.width ?? 1;
+    const height = item.height ?? 1;
+
+    return (
+      <svg
+        className="c-board-drawing"
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        fill="none"
+      >
+        <path
+          d={item.d ?? ""}
+          stroke={item.color}
+          strokeWidth={item.strokeWidth}
+          strokeOpacity={item.opacity}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
     );
   }
 

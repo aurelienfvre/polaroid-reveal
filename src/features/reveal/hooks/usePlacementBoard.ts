@@ -143,9 +143,18 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
     [nextZ, pushHistory],
   );
 
-  // Commit a finished freehand pen stroke as a (non-selectable) board item.
+  // Commit a finished freehand pen stroke as a selectable board item.
   const commitDrawing = useCallback(
-    (d: string, color: string, strokeWidth: number, opacity: number) => {
+    (
+      d: string,
+      color: string,
+      strokeWidth: number,
+      opacity: number,
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+    ) => {
       pushHistory();
       setItems((current) => [
         ...current,
@@ -156,8 +165,10 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
           color,
           strokeWidth,
           opacity,
-          x: 0,
-          y: 0,
+          width,
+          height,
+          x,
+          y,
           rotate: 0,
           scale: 1,
           zIndex: nextZ(),

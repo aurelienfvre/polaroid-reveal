@@ -103,7 +103,8 @@
 .c-board-item.is-selected .c-board-photo,
 .c-board-item.is-selected .c-board-decal,
 .c-board-item.is-selected .c-board-shape,
-.c-board-item.is-selected .c-board-text {
+.c-board-item.is-selected .c-board-text,
+.c-board-item.is-selected .c-board-drawing {
   outline: 2px solid var(--blue-500);
   outline-offset: 3px;
 }
@@ -149,7 +150,7 @@
 }
 
 .c-board-item--tape .c-board-decal {
-  width: 180px;
+  width: 118px;
 }
 
 .c-board-shape {
@@ -160,6 +161,12 @@
 
 .c-board-shape--circle {
   border-radius: 50%;
+}
+
+.c-board-drawing {
+  display: block;
+  overflow: visible;
+  pointer-events: none;
 }
 
 .c-board-text {
@@ -224,6 +231,47 @@
   background: var(--grey-50);
   transform-origin: center top;
   cursor: grab;
+}
+
+.c-board-item__resize-handle {
+  position: absolute;
+  display: none;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 2px solid var(--blue-500);
+  background: var(--grey-50);
+  transform-origin: center;
+}
+
+.c-board-item__resize-handle--top-left {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+
+.c-board-item__resize-handle--top-right {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+
+.c-board-item__resize-handle--bottom-left {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+
+.c-board-item__resize-handle--bottom-right {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .c-board-item__resize-handle {
+    display: block;
+  }
 }
 
 /* --- Tray of prints "in hand" ------------------------------------------ */
@@ -566,9 +614,6 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  width: 390px;
-  max-width: calc(100vw - 48px);
-  margin-inline: auto;
   padding: 16px 24px 8px;
 }
 

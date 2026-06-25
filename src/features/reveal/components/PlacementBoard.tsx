@@ -49,6 +49,24 @@ function buildPath(points: { x: number; y: number }[]) {
     .join(" ");
 }
 
+function buildDrawingItem(points: { x: number; y: number }[], strokeWidth: number) {
+  const padding = Math.max(strokeWidth * 2, 12);
+  const xs = points.map((point) => point.x);
+  const ys = points.map((point) => point.y);
+  const left = Math.min(...xs) - padding;
+  const top = Math.min(...ys) - padding;
+  const width = Math.max(Math.max(...xs) - Math.min(...xs) + padding * 2, padding * 2);
+  const height = Math.max(Math.max(...ys) - Math.min(...ys) + padding * 2, padding * 2);
+
+  return {
+    d: buildPath(points.map((point) => ({ x: point.x - left, y: point.y - top }))),
+    height,
+    width,
+    x: left + width / 2,
+    y: top + height / 2,
+  };
+}
+
 export function PlacementBoard({ customizations, photos }: Props) {
   const board = usePlacementBoard(photos);
   const viewportRef = useRef<HTMLDivElement>(null);
@@ -73,7 +91,13 @@ export function PlacementBoard({ customizations, photos }: Props) {
     if (!rect) {
       return;
     }
-    board.updateViewport({ x: (rect.width - BOARD_SURFACE_WIDTH) / 2, y: 72 });
+    const isMobileBoard = rect.width < 640;
+    const initialScale = isMobileBoard ? 0.68 : 1;
+    board.updateViewport({
+      scale: initialScale,
+      x: (rect.width - BOARD_SURFACE_WIDTH * initialScale) / 2,
+      y: isMobileBoard ? 42 : 72,
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -198,7 +222,17 @@ export function PlacementBoard({ customizations, photos }: Props) {
         strokeRef.current = null;
         setLiveStroke(null);
         if (stroke.points.length > 1) {
-          board.commitDrawing(buildPath(stroke.points), stroke.color, stroke.width, stroke.opacity);
+          const drawing = buildDrawingItem(stroke.points, stroke.width);
+          board.commitDrawing(
+            drawing.d,
+            stroke.color,
+            stroke.width,
+            stroke.opacity,
+            drawing.x,
+            drawing.y,
+            drawing.width,
+            drawing.height,
+          );
         }
       }
       return;
@@ -338,25 +372,23 @@ export function PlacementBoard({ customizations, photos }: Props) {
           ref={surfaceRef}
           style={surfaceStyle}
         >
-          {board.items
-            .filter((item) => item.kind !== "drawing")
-            .map((item) => (
-              <BoardItemView
-                key={item.id}
-                item={item}
-                customization={item.memoryId ? customizations[item.memoryId] : undefined}
-                isSelected={board.selectedId === item.id}
-                inverseScale={1 / board.viewport.scale}
-                onSelect={board.selectItem}
-                onMove={(id, dx, dy) => board.moveItemBy(id, dx / board.viewport.scale, dy / board.viewport.scale)}
-                onRotate={(id, rotate) => board.updateItem(id, { rotate })}
-                onScale={(id, scale) => board.updateItem(id, { scale })}
-                onRemove={board.removeItem}
-                onEditText={(id, text) => board.updateItem(id, { text })}
-              />
-            ))}
+          {board.items.map((item) => (
+            <BoardItemView
+              key={item.id}
+              item={item}
+              customization={item.memoryId ? customizations[item.memoryId] : undefined}
+              isSelected={board.selectedId === item.id}
+              inverseScale={1 / board.viewport.scale}
+              onSelect={board.selectItem}
+              onMove={(id, dx, dy) => board.moveItemBy(id, dx / board.viewport.scale, dy / board.viewport.scale)}
+              onRotate={(id, rotate) => board.updateItem(id, { rotate })}
+              onScale={(id, scale) => board.updateItem(id, { scale })}
+              onRemove={board.removeItem}
+              onEditText={(id, text) => board.updateItem(id, { text })}
+            />
+          ))}
 
-          {/* Freehand pen ink (committed strokes + the live one). */}
+          {/* Live freehand pen ink before it becomes a selectable board item. */}
           <svg
             className="c-placement-board__ink"
             width={BOARD_SURFACE_WIDTH}
@@ -364,19 +396,6 @@ export function PlacementBoard({ customizations, photos }: Props) {
             viewBox={`0 0 ${BOARD_SURFACE_WIDTH} ${BOARD_SURFACE_HEIGHT}`}
             fill="none"
           >
-            {board.items
-              .filter((item) => item.kind === "drawing")
-              .map((item) => (
-                <path
-                  key={item.id}
-                  d={item.d}
-                  stroke={item.color}
-                  strokeWidth={item.strokeWidth}
-                  strokeOpacity={item.opacity}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              ))}
             {liveStroke && liveStroke.points.length > 1 && (
               <path
                 d={buildPath(liveStroke.points)}
