@@ -43,7 +43,7 @@ export function DevelopControls({
         </button>
 
         <PolaroidButton onClick={isLastTirage ? onShowMyPhotos : onTakeNewPhoto}>
-          {isLastTirage ? "SHOW ALL SNAPS" : "TAKE A NEW SNAP"}
+          {isLastTirage ? "SHOW ALL SNAPS" : "REVEAL NEXT SNAP"}
         </PolaroidButton>
       </div>
     </>

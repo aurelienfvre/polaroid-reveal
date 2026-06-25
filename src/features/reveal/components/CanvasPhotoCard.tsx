@@ -67,7 +67,6 @@ export function CanvasPhotoCard({
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerCancel}
     >
-      <span className="c-canvas-photo__pin" />
       <span className="c-canvas-photo__image" style={imageStyle}>
         {grainOpacity > 0 && (
           <span

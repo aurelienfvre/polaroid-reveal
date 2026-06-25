@@ -18,6 +18,17 @@
   overflow: hidden;
 }
 
+.p-home--is-canvas {
+  --board-bg-image: url("/images/bg-board_desk.jpg");
+  --board-bg-size: 1440px 844px;
+
+  width: 100%;
+  height: 100dvh;
+  padding: 0;
+  background: var(--grey-500);
+  overflow: hidden;
+}
+
 .p-home__experience {
   position: relative;
   display: grid;
@@ -29,6 +40,10 @@
 .p-home__experience--is-camera,
 .p-home__experience--is-develop,
 .p-home__experience--is-personalize {
+  height: 100dvh;
+}
+
+.p-home__experience--is-canvas {
   height: 100dvh;
 }
 
@@ -100,5 +115,12 @@
   .p-home--is-personalize {
     padding: 0;
     background-image: url("/images/BG_mobile.jpg");
+  }
+
+  .p-home--is-canvas {
+    --board-bg-image: url("/images/bg-board_mobile.jpg");
+    --board-bg-size: 390px 844px;
+
+    padding: 0;
   }
 }

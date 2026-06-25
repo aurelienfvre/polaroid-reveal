@@ -29,14 +29,6 @@ export function MemoryCanvas({
 }: Props) {
   return (
     <div className="c-memory-canvas" aria-label="Canvas scrapbook libre">
-      <div className="c-memory-canvas__toolbar">
-        <span className="c-memory-canvas__counter">
-          {photos.length} Polaroids places
-        </span>
-        <span className="c-memory-canvas__hint">
-          Placement libre, sans magnetisme
-        </span>
-      </div>
       <div className="c-memory-canvas__viewport">
         <div className="c-memory-canvas__surface">
           {photos.map((photo) => (
