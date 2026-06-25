@@ -12,7 +12,7 @@ type CameraSceneState = {
 };
 
 /** Total time (ms) for the print to slide fully out of the slot. */
-const EJECT_DURATION = 2600;
+const EJECT_DURATION = 1800;
 /** Print dimensions in scene units — sized to stay fully in the base frame. */
 const PHOTO_WIDTH = 0.98;
 const PHOTO_HEIGHT = 1.16;

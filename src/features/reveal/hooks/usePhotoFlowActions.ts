@@ -8,6 +8,7 @@ import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 
 type Params = {
   activeMemory: Memory;
+  canChangePhoto: boolean;
   deviceProfile: DeviceProfile;
   getNextCanvasZIndex: () => number;
   isDailyComplete: boolean;
@@ -19,9 +20,11 @@ type Params = {
   resetDevelopmentState: () => void;
   resetPointerTilt: () => void;
   setActiveIndex: Dispatch<SetStateAction<number>>;
+  setChangeCount: Dispatch<SetStateAction<number>>;
   setPhase: Dispatch<SetStateAction<ExperiencePhase>>;
   setPhotoFocused: Dispatch<SetStateAction<boolean>>;
   setPlacedPhotos: Dispatch<SetStateAction<CanvasPhoto[]>>;
+  setShootNonce: Dispatch<SetStateAction<number>>;
 };
 
 export function usePhotoFlowActions(params: Params) {
@@ -68,10 +71,11 @@ export function usePhotoFlowActions(params: Params) {
   // Swap the developed print for another random memory without leaving the
   // develop view — it stays revealed, just shows a different shot.
   const handleChangePhoto = () => {
-    if (!params.isRevealed) {
+    if (!params.isRevealed || !params.canChangePhoto) {
       return;
     }
 
+    params.setChangeCount((count) => count + 1);
     params.setActiveIndex((currentIndex) => pickAnotherIndex(currentIndex));
     triggerHaptic("snap", { intensity: 0.3 });
   };
@@ -89,6 +93,8 @@ export function usePhotoFlowActions(params: Params) {
     params.setActiveIndex((currentIndex) => pickAnotherIndex(currentIndex));
     triggerHaptic("snap", { intensity: 0.5 });
     params.setPhase("camera");
+    // Re-fire the eject straight away so the user doesn't have to tap again.
+    params.setShootNonce((nonce) => nonce + 1);
   };
 
   // Finish the daily set and move on to personalising the prints.

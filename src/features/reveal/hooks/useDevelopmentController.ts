@@ -77,6 +77,9 @@ export function useDevelopmentController({
 
       if (nextProgress >= 1 && !hasRevealedRef.current) {
         hasRevealedRef.current = true;
+        // Snap the print straight as soon as it's developed so it stops feeling
+        // like it's still moving (mobile motion is sensitive).
+        resetDevelopmentImpulse(polaroidMotionRef.current);
         triggerHaptic("reveal", { intensity: 0.8 });
       }
     },

@@ -52,6 +52,7 @@ export function useRevealExperienceModel(
     stageRef,
   });
   usePolaroidTiltEffect({
+    isFocused: flow.isPhotoFocused,
     isRevealed: development.isRevealed,
     motionRef: polaroidMotionRef,
     orientation: motion.orientation,
@@ -65,6 +66,7 @@ export function useRevealExperienceModel(
       ...drag,
       activeIndex: flow.activeIndex,
       cameraModel,
+      canChangePhoto: flow.canChangePhoto,
       customizations: flow.photoCustomizations,
       isLastTirage: flow.isLastTirage,
       isPhotoFocused: flow.isPhotoFocused,
@@ -81,6 +83,7 @@ export function useRevealExperienceModel(
       phase: flow.phase,
       photos: flow.placedPhotos,
       revealProgress: development.revealProgress,
+      shootNonce: flow.shootNonce,
       tiltStyle: getTiltStyle(development.revealProgress),
     },
   };

@@ -2,6 +2,7 @@ import { Share } from "lucide-react";
 import { PolaroidButton } from "@/features/reveal/components/PolaroidButton";
 
 type Props = {
+  canChangePhoto: boolean;
   isLastTirage: boolean;
   onChangePhoto: () => void;
   onShare: () => void;
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function DevelopControls({
+  canChangePhoto,
   isLastTirage,
   onChangePhoto,
   onShare,
@@ -32,7 +34,7 @@ export function DevelopControls({
           className="c-develop__change"
           type="button"
           onClick={onChangePhoto}
-          disabled={isLastTirage}
+          disabled={isLastTirage || !canChangePhoto}
         >
           Change this photo
         </button>

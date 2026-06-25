@@ -6,7 +6,7 @@ import { PolaroidCameraScene } from "@/features/reveal/components/PolaroidCamera
 import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
 import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 
-const EJECT_DURATION = 2900;
+const EJECT_DURATION = 2100;
 // Let the button's stripe press animation play out before the eject hides it.
 const SHOOT_DELAY = 520;
 
@@ -14,9 +14,10 @@ type Props = {
   isPassive?: boolean;
   model: PolaroidCameraModel;
   onShoot?: () => void;
+  shootNonce?: number;
 };
 
-export function PolaroidCamera({ isPassive = false, model, onShoot }: Props) {
+export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce = 0 }: Props) {
   const [isEjecting, setIsEjecting] = useState(false);
   const isEjectingRef = useRef(false);
   const timeoutRef = useRef<number | null>(null);
@@ -51,6 +52,21 @@ export function PolaroidCamera({ isPassive = false, model, onShoot }: Props) {
       }, EJECT_DURATION);
     }, SHOOT_DELAY);
   };
+
+  // Auto-fire the eject when the parent bumps the nonce (e.g. "Take a new
+  // photo"), so the user doesn't have to press the button again.
+  const lastNonceRef = useRef(shootNonce);
+  useEffect(() => {
+    if (shootNonce === lastNonceRef.current) {
+      return;
+    }
+    lastNonceRef.current = shootNonce;
+    if (!isPassive) {
+      handleShoot();
+    }
+    // handleShoot is stable enough for this fire-and-forget trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shootNonce]);
 
   useEffect(() => () => {
     if (timeoutRef.current) {

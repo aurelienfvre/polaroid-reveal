@@ -6,9 +6,16 @@ import {
   type CSSProperties,
   type Dispatch,
   type PointerEvent,
+  type ReactNode,
   type SetStateAction,
 } from "react";
 import { PersonalizePhotoCard } from "@/features/reveal/components/PersonalizePhotoCard";
+import {
+  CheckIcon,
+  FilterIcon,
+  TextIcon,
+  TextureIcon,
+} from "@/features/reveal/components/PersonalizeIcons";
 import { usePhotoPersonalization } from "@/features/reveal/hooks/usePhotoPersonalization";
 import {
   PHOTO_FILTERS,
@@ -184,12 +191,18 @@ export function PersonalizeStage({
 
       <div className="c-perso__toolbar">
         <div className="c-perso__tools">
-          <PersoTool icon="filter" label="Filter" active={perso.activeTab === "filter"} onClick={() => perso.toggleTab("filter")} />
-          <PersoTool icon="text" label="Text" active={perso.activeTab === "text"} onClick={() => perso.toggleTab("text")} />
-          <PersoTool icon="texture" label="Texture" active={perso.activeTab === "texture"} onClick={() => perso.toggleTab("texture")} />
+          <PersoTool active={perso.activeTab === "filter"} label="Filter" onClick={() => perso.toggleTab("filter")}>
+            <FilterIcon />
+          </PersoTool>
+          <PersoTool active={perso.activeTab === "text"} label="Text" onClick={() => perso.toggleTab("text")}>
+            <TextIcon />
+          </PersoTool>
+          <PersoTool active={perso.activeTab === "texture"} label="Texture" onClick={() => perso.toggleTab("texture")}>
+            <TextureIcon />
+          </PersoTool>
         </div>
         <button className="c-perso__validate" type="button" onClick={onValidate}>
-          <img src="/icons/check.svg" alt="" aria-hidden="true" />
+          <CheckIcon />
           VALIDATE
         </button>
       </div>
@@ -199,12 +212,12 @@ export function PersonalizeStage({
 
 function PersoTool({
   active,
-  icon,
+  children,
   label,
   onClick,
 }: {
   active: boolean;
-  icon: string;
+  children: ReactNode;
   label: string;
   onClick: () => void;
 }) {
@@ -214,7 +227,7 @@ function PersoTool({
       type="button"
       onClick={onClick}
     >
-      <img src={`/icons/${icon}.svg`} alt="" aria-hidden="true" />
+      {children}
       <span>{label}</span>
     </button>
   );

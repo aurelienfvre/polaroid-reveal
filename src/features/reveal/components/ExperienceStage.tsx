@@ -14,6 +14,7 @@ import type {
 type Props = {
   activeIndex: number;
   cameraModel: PolaroidCameraModel;
+  canChangePhoto: boolean;
   customizations: Record<string, PhotoCustomization>;
   draggingId: string | null;
   isLastTirage: boolean;
@@ -38,6 +39,7 @@ type Props = {
   onValidatePersonalization: () => void;
   phase: ExperiencePhase;
   photos: CanvasPhoto[];
+  shootNonce: number;
   revealProgress: number;
   tiltStyle: TiltStyle;
 };
@@ -74,10 +76,12 @@ export function ExperienceStage(props: Props) {
         isPassive={props.phase === "develop"}
         model={props.cameraModel}
         onShoot={props.onShoot}
+        shootNonce={props.shootNonce}
       />
       {props.phase === "develop" && (
         <DevelopStage
           activeIndex={props.activeIndex}
+          canChangePhoto={props.canChangePhoto}
           isLastTirage={props.isLastTirage}
           isPhotoFocused={props.isPhotoFocused}
           isRevealed={props.isRevealed}

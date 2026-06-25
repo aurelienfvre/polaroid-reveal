@@ -19,9 +19,9 @@ const EMPTY_TILT: DeviceTilt = {
 };
 
 const MIN_SHAKE_ENERGY = 2.4;
-const SHAKE_ENERGY_STEP = 11.5;
-const SENSOR_PROGRESS_STEP = 0.065;
-const SENSOR_PROGRESS_COOLDOWN_MS = 180;
+const SHAKE_ENERGY_STEP = 9;
+const SENSOR_PROGRESS_STEP = 0.17;
+const SENSOR_PROGRESS_COOLDOWN_MS = 150;
 // Bleed off banked energy each event so a hard shake doesn't keep firing
 // progress after the user has stopped (the "it thinks it's still moving" feel).
 const SHAKE_ENERGY_DECAY = 0.8;

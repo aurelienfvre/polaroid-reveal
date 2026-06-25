@@ -6,6 +6,7 @@ import type { TiltStyle } from "@/features/reveal/types/revealTypes";
 
 type Props = {
   activeIndex: number;
+  canChangePhoto: boolean;
   isLastTirage: boolean;
   isPhotoFocused: boolean;
   isRevealed: boolean;
@@ -21,6 +22,7 @@ type Props = {
 
 export function DevelopStage({
   activeIndex,
+  canChangePhoto,
   isLastTirage,
   isPhotoFocused,
   isRevealed,
@@ -59,6 +61,7 @@ export function DevelopStage({
 
       {isPhotoFocused && isRevealed && (
         <DevelopControls
+          canChangePhoto={canChangePhoto}
           isLastTirage={isLastTirage}
           onChangePhoto={onChangePhoto}
           onShare={onShare}

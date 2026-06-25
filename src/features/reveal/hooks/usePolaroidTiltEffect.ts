@@ -4,6 +4,7 @@ import type { DeviceTilt } from "@/hooks/useDeviceOrientation";
 import { normalizeTilt } from "@/lib/gyroscope/normalizeTilt";
 
 type Params = {
+  isFocused: boolean;
   isRevealed: boolean;
   motionRef: RefObject<HTMLElement | null>;
   orientation: DeviceTilt;
@@ -21,6 +22,7 @@ const MOTION_VARS = [
 ];
 
 export function usePolaroidTiltEffect({
+  isFocused,
   isRevealed,
   motionRef,
   orientation,
@@ -36,15 +38,19 @@ export function usePolaroidTiltEffect({
   }, [orientation, permissionState]);
 
   useEffect(() => {
-    // Once developed, snap the print back to straight and stop reacting to the
-    // device — the motion is too sensitive on mobile and otherwise makes the
-    // finished print feel like it is still moving, blocking the next step.
-    if (isRevealed && motionRef.current) {
-      MOTION_VARS.forEach((name) => motionRef.current?.style.setProperty(name, "0"));
+    if (!motionRef.current) {
       return;
     }
 
-    if (phase !== "develop" || !motionRef.current || permissionState !== "granted") {
+    // Only react to the gyroscope while the print is actively being held
+    // (focused, not yet revealed). At rest, once revealed, or in any other
+    // phase, keep it straight — the motion is too sensitive otherwise and it
+    // shouldn't move until the user taps it to shake.
+    const shouldTilt =
+      phase === "develop" && isFocused && !isRevealed && permissionState === "granted";
+
+    if (!shouldTilt) {
+      MOTION_VARS.forEach((name) => motionRef.current?.style.setProperty(name, "0"));
       return;
     }
 
@@ -72,5 +78,5 @@ export function usePolaroidTiltEffect({
       "--motion-light-y",
       `${interactionTilt.y * 44}px`,
     );
-  }, [interactionTilt, isRevealed, motionRef, permissionState, phase]);
+  }, [interactionTilt, isFocused, isRevealed, motionRef, permissionState, phase]);
 }

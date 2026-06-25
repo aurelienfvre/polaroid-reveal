@@ -48,7 +48,10 @@ export function useRevealAnimations({
         }
       }
 
-      if (phase === "develop") {
+      if (phase === "develop" && !isPhotoFocused) {
+        // Only drop into the resting spot when not focused. If focused (e.g. the
+        // user swapped the photo with "Change this photo"), the focused effect
+        // below keeps it in place instead of resetting it.
         animateDevelopEntry(cameraModel.photoExit);
       }
 
@@ -58,7 +61,7 @@ export function useRevealAnimations({
 
       previousPhaseRef.current = phase;
     },
-    { scope: stageRef, dependencies: [phase, activeIndex, cameraModel] },
+    { scope: stageRef, dependencies: [phase, activeIndex, cameraModel, isPhotoFocused] },
   );
 
   useGSAP(
@@ -67,9 +70,11 @@ export function useRevealAnimations({
         return;
       }
 
+      // Re-runs on activeIndex too, so a freshly-mounted card from
+      // "Change this photo" lands at the focused position/size, not the rest one.
       animateFocusedPhoto();
     },
-    { scope: stageRef, dependencies: [isPhotoFocused, phase] },
+    { scope: stageRef, dependencies: [isPhotoFocused, phase, activeIndex] },
   );
 
   useGSAP(
