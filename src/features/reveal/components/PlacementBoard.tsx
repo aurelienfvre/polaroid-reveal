@@ -133,7 +133,10 @@ export function PlacementBoard({ customizations, photos }: Props) {
   };
 
   const handleViewportPointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (board.stampSticker) {
+    // The cursor-riding stamp preview is a hover affordance — only meaningful
+    // for a fine pointer (mouse). On touch there is no hover, so we skip it and
+    // let the tap-to-place flow on pointer-up handle the sticker instead.
+    if (board.stampSticker && event.pointerType !== "touch") {
       setStampPos({ x: event.clientX, y: event.clientY });
     }
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
@@ -160,7 +163,7 @@ export function PlacementBoard({ customizations, photos }: Props) {
 
   const handleViewportPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     // Keep the stamp glued to the cursor even when no button is pressed (hover).
-    if (board.stampSticker) {
+    if (board.stampSticker && event.pointerType !== "touch") {
       setStampPos({ x: event.clientX, y: event.clientY });
     }
 
