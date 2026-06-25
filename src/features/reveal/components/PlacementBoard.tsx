@@ -263,7 +263,7 @@ export function PlacementBoard({ customizations, photos }: Props) {
         const point = toBoardPoint(event.clientX, event.clientY);
         board.addItem({
           kind: "text",
-          text: "Texte",
+          text: "",
           color: board.activeColor,
           fontId: board.textFont,
           x: point.x,

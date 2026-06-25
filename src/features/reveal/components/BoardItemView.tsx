@@ -360,6 +360,7 @@ function ItemBody({
       ref={textRef}
       className="c-board-text"
       value={item.text ?? ""}
+      placeholder="Text"
       readOnly={!isSelected}
       rows={1}
       spellCheck={false}
