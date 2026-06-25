@@ -9,8 +9,9 @@ import { StickerSheet } from "@/features/reveal/components/StickerSheet";
 import {
   BOARD_BACKGROUNDS,
   BOARD_COLORS,
-  BOARD_TAPES,
   PEN_STROKES,
+  SCOTCH_PIECES,
+  SCOTCH_TEXTURES,
 } from "@/features/reveal/lib/boardData";
 import type { BoardShape, BoardTool } from "@/features/reveal/types/revealTypes";
 
@@ -18,19 +19,22 @@ type Props = {
   activeTool: BoardTool | null;
   activeColor: string;
   backgroundId: string;
+  isStamping: boolean;
   onToolToggle: (tool: BoardTool) => void;
   onColorChange: (color: string) => void;
   onBackgroundChange: (id: string) => void;
-  onAddTape: (src: string) => void;
+  onAddTape: (src: string, scale: number) => void;
   onAddText: () => void;
   onAddShape: (shape: BoardShape) => void;
   onAddSticker: (src: string) => void;
+  onClearStamp: () => void;
 };
 
 export function BoardToolbar({
   activeTool,
   activeColor,
   backgroundId,
+  isStamping,
   onToolToggle,
   onColorChange,
   onBackgroundChange,
@@ -38,11 +42,14 @@ export function BoardToolbar({
   onAddText,
   onAddShape,
   onAddSticker,
+  onClearStamp,
 }: Props) {
   // Sub-view of the "+" popover: the menu itself, or a drilled-in picker.
   const [addView, setAddView] = useState<"menu" | "background" | "shape">("menu");
   const [penStroke, setPenStroke] = useState<number>(PEN_STROKES[1]);
   const [penOpacity, setPenOpacity] = useState(100);
+  // Scotch texture is a purely visual selection (doesn't change what's placed).
+  const [scotchTexture, setScotchTexture] = useState(0);
 
   const handleAddToggle = () => {
     setAddView("menu");
@@ -52,19 +59,59 @@ export function BoardToolbar({
   return (
     <>
       {activeTool === "tape" && (
-        <ToolPanel>
-          {BOARD_TAPES.map((src) => (
-            <button
-              key={src}
-              type="button"
-              className="c-board-toolbar__swatch c-board-toolbar__swatch--tape"
-              onClick={() => onAddTape(src)}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" draggable={false} />
-            </button>
-          ))}
-        </ToolPanel>
+        <div className="c-board-toolbar__panel c-board-toolbar__panel--scotch">
+          {/* Left: the two tape sizes you actually drop on the board. */}
+          <div className="c-board-toolbar__tapes">
+            {SCOTCH_PIECES.map((piece) => (
+              <button
+                key={piece.id}
+                type="button"
+                className={`c-board-toolbar__tape c-board-toolbar__tape--${piece.id}`}
+                onClick={() => onAddTape(piece.src, piece.scale)}
+                aria-label={`Scotch ${piece.id}`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={piece.src} alt="" draggable={false} />
+              </button>
+            ))}
+          </div>
+
+          <div className="c-board-toolbar__scotch-right">
+            <span className="c-board-toolbar__scotch-sep" aria-hidden="true" />
+            {/* Texture is a visual-only selection (doesn't change what's placed). */}
+            <div className="c-board-toolbar__textures">
+              {SCOTCH_TEXTURES.map((texture, index) => (
+                <button
+                  key={texture.id}
+                  type="button"
+                  className={[
+                    "c-board-toolbar__texture",
+                    scotchTexture === index ? "is-active" : "",
+                  ].filter(Boolean).join(" ")}
+                  aria-label={texture.id}
+                  onClick={() => setScotchTexture(index)}
+                >
+                  {texture.kind === "image" ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={texture.value} alt="" draggable={false} />
+                  ) : (
+                    <span className="c-board-toolbar__texture-fill" style={{ background: texture.value }} />
+                  )}
+                  {scotchTexture === index && <SelectFrameIcon />}
+                </button>
+              ))}
+              {/* Adds a texture — placeholder, does nothing yet. */}
+              <button
+                type="button"
+                className="c-board-toolbar__texture c-board-toolbar__texture--add"
+                aria-label="Ajouter une texture"
+                onClick={() => undefined}
+              >
+                <PlusIcon className="c-board-toolbar__square-icon" />
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {activeTool === "pen" && (
@@ -164,24 +211,39 @@ export function BoardToolbar({
         </div>
       )}
 
-      {activeTool === "sticker" && (
+      {activeTool === "sticker" && !isStamping && (
         <StickerSheet onPick={onAddSticker} onClose={() => onToolToggle("sticker")} />
       )}
 
       <div className="c-board-toolbar">
         <div className="c-board-toolbar__tools">
-          <ToolButton active={activeTool === "tape"} onClick={() => onToolToggle("tape")} label="Scotch">
+          <ToolButton
+            active={activeTool === "tape"}
+            variant="scotch"
+            onClick={() => onToolToggle("tape")}
+            label="Scotch"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/scotch_photo.png" alt="" draggable={false} />
           </ToolButton>
-          <ToolButton active={activeTool === "sticker"} onClick={() => onToolToggle("sticker")} label="Sticker">
+          <ToolButton
+            active={activeTool === "sticker" || isStamping}
+            variant="sticker"
+            onClick={() => (isStamping ? onClearStamp() : onToolToggle("sticker"))}
+            label="Sticker"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/sticker_photo.png" alt="" draggable={false} />
           </ToolButton>
-          <ToolButton active={false} onClick={onAddText} label="Texte">
+          <ToolButton active={false} variant="text" onClick={onAddText} label="Texte">
             <span className="c-board-toolbar__glyph">Aa</span>
           </ToolButton>
-          <ToolButton active={activeTool === "pen"} onClick={() => onToolToggle("pen")} label="Stylo">
+          <ToolButton
+            active={activeTool === "pen"}
+            variant="pen"
+            onClick={() => onToolToggle("pen")}
+            label="Stylo"
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/pen.png" alt="" draggable={false} />
           </ToolButton>
@@ -222,16 +284,22 @@ function ToolButton({
   children,
   label,
   onClick,
+  variant,
 }: {
   active: boolean;
   children: React.ReactNode;
   label: string;
   onClick: () => void;
+  variant: "scotch" | "sticker" | "text" | "pen";
 }) {
   return (
     <button
       type="button"
-      className={["c-board-toolbar__tool", active ? "is-active" : ""].filter(Boolean).join(" ")}
+      className={[
+        "c-board-toolbar__tool",
+        `c-board-toolbar__tool--${variant}`,
+        active ? "is-active" : "",
+      ].filter(Boolean).join(" ")}
       aria-label={label}
       onClick={onClick}
     >
@@ -273,6 +341,26 @@ function ColorFrameIcon() {
           <stop offset="1" stopColor="#FFB500" />
         </linearGradient>
       </defs>
+    </svg>
+  );
+}
+
+/** Neutral corner-bracket "select" frame around the active scotch texture. */
+function SelectFrameIcon() {
+  return (
+    <svg
+      className="c-board-toolbar__select-frame"
+      width="34"
+      height="34"
+      viewBox="0 0 34 34"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M33 9V5C33 2.79086 31.2091 1 29 1H5C2.79086 1 1 2.79086 1 5V9M33 25V29C33 31.2091 31.2091 33 29 33H5C2.79086 33 1 31.2091 1 29V25"
+        stroke="#ffffff"
+        strokeWidth="2"
+      />
     </svg>
   );
 }

@@ -3,12 +3,9 @@ import {
   type CSSProperties,
   type PointerEvent,
 } from "react";
+import { BoardPhoto } from "@/features/reveal/components/BoardPhoto";
 import { EditIcon, TrashIcon } from "@/features/reveal/components/BoardIcons";
-import {
-  getFilterCss,
-  getFontCss,
-  getTextureOpacity,
-} from "@/features/reveal/lib/photoFilters";
+import { getFontCss } from "@/features/reveal/lib/photoFilters";
 import type {
   BoardItem,
   PhotoCustomization,
@@ -151,22 +148,25 @@ export function BoardItemView({
             >
               <TrashIcon />
             </button>
-            {item.kind === "text" && (
-              <button
-                type="button"
-                className="c-board-item__control"
-                aria-label="Editer"
-                onPointerDown={(event) => event.stopPropagation()}
-                onClick={(event) => {
-                  const field = event.currentTarget
-                    .closest(".c-board-item")
-                    ?.querySelector("textarea");
-                  (field as HTMLTextAreaElement | null)?.focus();
-                }}
-              >
-                <EditIcon />
-              </button>
-            )}
+            <button
+              type="button"
+              className="c-board-item__control"
+              aria-label="Editer"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => {
+                // Text items become editable; for stickers/decals the edit
+                // button is a placeholder affordance that does nothing yet.
+                if (item.kind !== "text") {
+                  return;
+                }
+                const field = event.currentTarget
+                  .closest(".c-board-item")
+                  ?.querySelector("textarea");
+                (field as HTMLTextAreaElement | null)?.focus();
+              }}
+            >
+              <EditIcon />
+            </button>
           </div>
           <button
             type="button"
@@ -196,38 +196,7 @@ function ItemBody({
   onEditText: (id: string, text: string) => void;
 }) {
   if (item.kind === "photo") {
-    const grainOpacity = customization
-      ? getTextureOpacity(customization.textureId, customization.textureIntensity)
-      : 0;
-    const caption = customization?.text?.trim();
-    return (
-      <div className="c-board-photo">
-        <span
-          className="c-board-photo__image"
-          style={{
-            backgroundImage: `url("${item.imageUrl}")`,
-            filter: customization ? getFilterCss(customization.filterId) : undefined,
-          }}
-        >
-          {grainOpacity > 0 && (
-            <span
-              className={`c-board-photo__grain c-board-photo__grain--${customization?.textureId ?? "none"}`}
-              style={{ opacity: grainOpacity }}
-            />
-          )}
-        </span>
-        {caption ? (
-          <span
-            className="c-board-photo__caption"
-            style={{ fontFamily: customization ? getFontCss(customization.fontId) : undefined }}
-          >
-            {caption}
-          </span>
-        ) : (
-          <span className="c-board-photo__caption c-board-photo__caption--empty" aria-hidden="true" />
-        )}
-      </div>
-    );
+    return <BoardPhoto imageUrl={item.imageUrl} customization={customization} />;
   }
 
   if (item.kind === "sticker" || item.kind === "tape") {

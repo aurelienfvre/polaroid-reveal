@@ -9,6 +9,7 @@ import {
   type WheelEvent,
 } from "react";
 import { BoardItemView } from "@/features/reveal/components/BoardItemView";
+import { BoardPhoto } from "@/features/reveal/components/BoardPhoto";
 import { BoardToolbar } from "@/features/reveal/components/BoardToolbar";
 import { ProfileIcon, UndoIcon } from "@/features/reveal/components/BoardIcons";
 import { usePlacementBoard } from "@/features/reveal/hooks/usePlacementBoard";
@@ -45,6 +46,8 @@ export function PlacementBoard({ customizations, photos }: Props) {
     movedDistance: 0,
   });
   const [trayDrag, setTrayDrag] = useState<{ id: string; x: number; y: number } | null>(null);
+  // Screen position of the sticker "stamp" riding the cursor (FigJam-style).
+  const [stampPos, setStampPos] = useState<{ x: number; y: number } | null>(null);
 
   // Open centred horizontally on the surface, just below the header.
   useEffect(() => {
@@ -88,6 +91,9 @@ export function PlacementBoard({ customizations, photos }: Props) {
   };
 
   const handleViewportPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (board.stampSticker) {
+      setStampPos({ x: event.clientX, y: event.clientY });
+    }
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     event.currentTarget.setPointerCapture(event.pointerId);
     gestureRef.current.movedDistance = 0;
@@ -98,6 +104,11 @@ export function PlacementBoard({ customizations, photos }: Props) {
   };
 
   const handleViewportPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    // Keep the stamp glued to the cursor even when no button is pressed (hover).
+    if (board.stampSticker) {
+      setStampPos({ x: event.clientX, y: event.clientY });
+    }
+
     const tracked = pointersRef.current.get(event.pointerId);
     if (!tracked) {
       return;
@@ -119,15 +130,32 @@ export function PlacementBoard({ customizations, photos }: Props) {
       return;
     }
 
+    // While stamping, a single pointer just positions the stamp (no panning).
+    if (board.stampSticker) {
+      return;
+    }
+
     // Single pointer → pan the board.
     board.updateViewport((prev) => ({ x: prev.x + dx, y: prev.y + dy }));
   };
 
   const handleViewportPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const wasSinglePointer = pointersRef.current.size === 1;
     pointersRef.current.delete(event.pointerId);
     if (pointersRef.current.size < 2) {
       gestureRef.current.lastDist = 0;
     }
+
+    // Stamp mode: drop a copy of the loaded sticker where the cursor lands and
+    // stay loaded so several can be placed in a row.
+    if (board.stampSticker) {
+      if (wasSinglePointer) {
+        const point = toBoardPoint(event.clientX, event.clientY);
+        board.placeSticker(board.stampSticker, point.x, point.y);
+      }
+      return;
+    }
+
     // A tap on the empty board (no real drag) clears the selection.
     if (pointersRef.current.size === 0 && gestureRef.current.movedDistance < 6) {
       board.selectItem(null);
@@ -207,7 +235,10 @@ export function PlacementBoard({ customizations, photos }: Props) {
       </header>
 
       <div
-        className="c-placement-board__viewport"
+        className={[
+          "c-placement-board__viewport",
+          board.stampSticker ? "is-stamping" : "",
+        ].filter(Boolean).join(" ")}
         ref={viewportRef}
         onPointerDown={handleViewportPointerDown}
         onPointerMove={handleViewportPointerMove}
@@ -252,9 +283,10 @@ export function PlacementBoard({ customizations, photos }: Props) {
               onPointerMove={handleTrayPointerMove}
               onPointerUp={handleTrayPointerUp}
               onPointerCancel={() => setTrayDrag(null)}
-              style={{ backgroundImage: `url("${photo.imageUrl}")` }}
               aria-label={`Placer ${photo.title}`}
-            />
+            >
+              <BoardPhoto imageUrl={photo.imageUrl} customization={customizations[photo.id]} />
+            </button>
           ))}
         </div>
       )}
@@ -263,12 +295,24 @@ export function PlacementBoard({ customizations, photos }: Props) {
         <span
           className="c-placement-board__ghost"
           aria-hidden="true"
-          style={{
-            left: trayDrag.x,
-            top: trayDrag.y,
-            backgroundImage: `url("${draggingPhoto.imageUrl}")`,
-          }}
-        />
+          style={{ left: trayDrag.x, top: trayDrag.y }}
+        >
+          <BoardPhoto
+            imageUrl={draggingPhoto.imageUrl}
+            customization={customizations[draggingPhoto.id]}
+          />
+        </span>
+      )}
+
+      {board.stampSticker && stampPos && (
+        <span
+          className="c-placement-board__stamp"
+          aria-hidden="true"
+          style={{ left: stampPos.x, top: stampPos.y }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={board.stampSticker} alt="" draggable={false} />
+        </span>
       )}
 
       {board.tray.length === 0 && (
@@ -276,18 +320,22 @@ export function PlacementBoard({ customizations, photos }: Props) {
         activeTool={board.activeTool}
         activeColor={board.activeColor}
         backgroundId={board.backgroundId}
+        isStamping={Boolean(board.stampSticker)}
         onToolToggle={board.toggleTool}
         onColorChange={board.setActiveColor}
         onBackgroundChange={board.setBackgroundId}
-        onAddTape={(src) => addCentered({ kind: "tape", src, x: 0, y: 0, rotate: -6, scale: 1 })}
+        onAddTape={(src, scale) => addCentered({ kind: "tape", src, x: 0, y: 0, rotate: -6, scale })}
         onAddText={() =>
           addCentered({ kind: "text", text: "Texte", color: board.activeColor, x: 0, y: 0, rotate: 0, scale: 1 })
         }
         onAddShape={(shape: BoardShape) =>
           addCentered({ kind: "shape", shape, color: board.activeColor, x: 0, y: 0, rotate: 0, scale: 1 })
         }
-        onAddSticker={(src) => {
-          addCentered({ kind: "sticker", src, x: 0, y: 0, rotate: 0, scale: 1 });
+        // Picking a sticker loads it on the cursor as a stamp rather than
+        // dropping it immediately — tap the board to place copies.
+        onAddSticker={(src) => board.setStampSticker(src)}
+        onClearStamp={() => {
+          board.setStampSticker(null);
           board.setActiveTool(null);
         }}
       />

@@ -21,12 +21,21 @@ export const BOARD_COLORS = [
   "#151515",
 ] as const;
 
-/** Washi-tape decorations (assets under /public/images). */
-export const BOARD_TAPES = [
-  "/images/scotch_photo.png",
-  "/images/scotch1.png",
-  "/images/scotch2.png",
-  "/images/scotch3.png",
+/** The two scotch pieces you can drop — same tape, different size. */
+export const SCOTCH_PIECES = [
+  { id: "small", src: "/images/scotch_photo.png", scale: 0.7 },
+  { id: "big", src: "/images/scotch_photo.png", scale: 1.15 },
+] as const;
+
+/**
+ * Texture options for the scotch. Purely a visual selection in the submenu —
+ * it does not actually change what gets placed (per design).
+ */
+export const SCOTCH_TEXTURES = [
+  { id: "kraft", kind: "image", value: "/images/scotch1.png" },
+  { id: "white", kind: "color", value: "#ffffff" },
+  { id: "stripes", kind: "image", value: "/images/scotch3.png" },
+  { id: "dots", kind: "image", value: "/images/scotch2.png" },
 ] as const;
 
 /** Board background swatches surfaced by "Change background". */
@@ -54,23 +63,23 @@ export const BOARD_BACKGROUNDS: BoardBackground[] = [
   },
 ];
 
-/**
- * Sticker catalogue. The real artwork is imported later — these placeholders
- * keep the sheet populated and scrollable. Extend this array as assets land.
- */
+/** Sticker catalogue (assets under /public/images/stickers). */
 export const BOARD_STICKERS: string[] = [
-  "/images/sticker_photo.png",
-  "/images/scotch_photo.png",
-  "/images/scotch1.png",
-  "/images/scotch2.png",
-  "/images/scotch3.png",
-  "/images/pen.png",
-  "/images/sticker_photo.png",
-  "/images/scotch1.png",
-  "/images/scotch2.png",
-  "/images/scotch3.png",
-  "/images/pen.png",
-  "/images/scotch_photo.png",
+  "/images/stickers/whale.png",
+  "/images/stickers/polaroid.png",
+  "/images/stickers/coffee.png",
+  "/images/stickers/heart.png",
+  "/images/stickers/bee.png",
+  "/images/stickers/flowers.png",
+  "/images/stickers/pen.png",
+  "/images/stickers/be_creative.png",
+  "/images/stickers/space.png",
+  "/images/stickers/pot.png",
+  "/images/stickers/lemon.png",
+  "/images/stickers/icetea.png",
+  "/images/stickers/sun.png",
+  "/images/stickers/snail.png",
+  "/images/stickers/shoe.png",
 ];
 
 /** Pen panel: stroke thickness presets (kept for the brush UI). */

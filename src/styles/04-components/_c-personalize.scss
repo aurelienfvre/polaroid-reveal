@@ -138,7 +138,9 @@
   caret-color: var(--grey-900);
   outline: 0;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  // `pre` (not `nowrap`) keeps a single line while preserving typed spaces —
+  // `nowrap` collapses trailing spaces in a contentEditable so they get eaten.
+  white-space: pre;
 }
 
 .c-perso-card__caption-editor:empty::before {

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BOARD_BACKGROUNDS,
   BOARD_COLORS,
@@ -30,19 +30,34 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
   const [activeTool, setActiveTool] = useState<BoardTool | null>(null);
   const [backgroundId, setBackgroundId] = useState(BOARD_BACKGROUNDS[0].id);
   const [activeColor, setActiveColor] = useState<string>(BOARD_COLORS[8]);
+  // The sticker currently "loaded" on the cursor as a FigJam-style stamp; null
+  // when not stamping. While set, tapping the board drops a copy.
+  const [stampSticker, setStampSticker] = useState<string | null>(null);
   const [viewport, setViewport] = useState<BoardViewport>({ x: 0, y: 0, scale: 1 });
 
   const zRef = useRef(20);
-  const historyRef = useRef<BoardItem[][]>([]);
+  // Each entry snapshots BOTH the placed items and the tray, so undoing a
+  // placement sends the print back to the tray (ready to place again).
+  const historyRef = useRef<Array<{ items: BoardItem[]; tray: CanvasPhoto[] }>>([]);
   const [canUndo, setCanUndo] = useState(false);
+
+  // Mirror the latest committed state so history can snapshot it before a change.
+  const itemsRef = useRef(items);
+  const trayRef = useRef(tray);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
+  useEffect(() => {
+    trayRef.current = tray;
+  }, [tray]);
 
   const background = useMemo(
     () => BOARD_BACKGROUNDS.find((bg) => bg.id === backgroundId) ?? BOARD_BACKGROUNDS[0],
     [backgroundId],
   );
 
-  const pushHistory = useCallback((snapshot: BoardItem[]) => {
-    historyRef.current.push(snapshot);
+  const pushHistory = useCallback(() => {
+    historyRef.current.push({ items: itemsRef.current, tray: trayRef.current });
     if (historyRef.current.length > 50) {
       historyRef.current.shift();
     }
@@ -67,10 +82,8 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
   const addItem = useCallback(
     (partial: Omit<BoardItem, "id" | "zIndex">) => {
       const id = nextItemId(partial.kind);
-      setItems((current) => {
-        pushHistory(current);
-        return [...current, { ...partial, id, zIndex: nextZ() }];
-      });
+      pushHistory();
+      setItems((current) => [...current, { ...partial, id, zIndex: nextZ() }]);
       setSelectedId(id);
       return id;
     },
@@ -84,26 +97,46 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
       if (!photo) {
         return;
       }
+      pushHistory();
       setTray((current) => current.filter((entry) => entry.id !== photoId));
-      setItems((current) => {
-        pushHistory(current);
-        return [
-          ...current,
-          {
-            id: nextItemId("photo"),
-            kind: "photo",
-            memoryId: photo.id,
-            imageUrl: photo.imageUrl,
-            x,
-            y,
-            rotate: photo.rotate ?? 0,
-            scale: 1,
-            zIndex: nextZ(),
-          },
-        ];
-      });
+      setItems((current) => [
+        ...current,
+        {
+          id: nextItemId("photo"),
+          kind: "photo",
+          memoryId: photo.id,
+          imageUrl: photo.imageUrl,
+          x,
+          y,
+          rotate: photo.rotate ?? 0,
+          scale: 1,
+          zIndex: nextZ(),
+        },
+      ]);
     },
     [nextZ, pushHistory, tray],
+  );
+
+  // Stamp a sticker at a board point without selecting it, so several can be
+  // dropped in a row (like the FigJam stamp tool).
+  const placeSticker = useCallback(
+    (src: string, x: number, y: number) => {
+      pushHistory();
+      setItems((current) => [
+        ...current,
+        {
+          id: nextItemId("sticker"),
+          kind: "sticker",
+          src,
+          x,
+          y,
+          rotate: 0,
+          scale: 1,
+          zIndex: nextZ(),
+        },
+      ]);
+    },
+    [nextZ, pushHistory],
   );
 
   const updateItem = useCallback((id: string, patch: Partial<BoardItem>) => {
@@ -113,10 +146,8 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
   }, []);
 
   const removeItem = useCallback((id: string) => {
-    setItems((current) => {
-      pushHistory(current);
-      return current.filter((item) => item.id !== id);
-    });
+    pushHistory();
+    setItems((current) => current.filter((item) => item.id !== id));
     setSelectedId((current) => (current === id ? null : current));
   }, [pushHistory]);
 
@@ -125,8 +156,10 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
     if (!previous) {
       return;
     }
-    setItems(previous);
+    setItems(previous.items);
+    setTray(previous.tray);
     setSelectedId(null);
+    setActiveTool(null);
     setCanUndo(historyRef.current.length > 0);
   }, []);
 
@@ -159,12 +192,15 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
     canUndo,
     items,
     placeFromTray,
+    placeSticker,
     removeItem,
     selectItem,
     selectedId,
     setActiveColor,
     setActiveTool,
     setBackgroundId,
+    setStampSticker,
+    stampSticker,
     toggleTool,
     tray,
     undo,

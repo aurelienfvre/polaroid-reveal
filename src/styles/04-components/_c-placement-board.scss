@@ -37,7 +37,6 @@
   height: 48px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
   background: transparent;
   cursor: pointer;
 
@@ -139,7 +138,6 @@
   display: block;
   width: 130px;
   height: 130px;
-  border-radius: var(--radius-sm);
 }
 
 .c-board-shape--circle {
@@ -172,26 +170,27 @@
   left: 100%;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 16px;
   margin-left: 8px;
+  padding: 8px 0;
+  border: 1px solid var(--blue-500);
+  background: var(--grey-50);
   transform-origin: top left;
 }
 
 .c-board-item__control {
   display: grid;
   place-items: center;
-  width: 38px;
-  height: 38px;
-  padding: 0;
+  padding: 0 8px;
   border: 0;
-  border-radius: 8px;
-  background: var(--grey-50);
-  box-shadow: 0 6px 16px rgb(21 21 21 / 22%);
+  background: transparent;
   cursor: pointer;
 
   img {
-    width: 22px;
-    height: 22px;
+    width: 32px;
+    height: 32px;
   }
 }
 
@@ -204,62 +203,90 @@
   margin-left: -10px;
   padding: 0;
   border: 2px solid var(--blue-500);
-  border-radius: 50%;
   background: var(--grey-50);
   transform-origin: center top;
   cursor: grab;
 }
 
 /* --- Tray of prints "in hand" ------------------------------------------ */
+/* Full-size polaroids, overlapped + tilted, anchored to the bottom and pushed
+ * partly below the fold (same component as a placed print, never shrunk). */
 .c-placement-board__tray {
   position: absolute;
-  inset: auto 0 36px 0;
+  inset: auto 0 0 0;
   z-index: 30;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  gap: 14px;
-  padding: 16px 24px;
   pointer-events: none;
+  transform: translateY(30%);
 }
 
 .c-placement-board__tray-photo {
-  width: 104px;
-  height: 124px;
   padding: 0;
-  border: 6px solid var(--grey-50);
-  border-bottom-width: 24px;
-  border-radius: 2px;
-  background-color: var(--grey-50);
-  background-position: center;
-  background-size: cover;
-  box-shadow: 0 12px 24px rgb(21 21 21 / 24%);
+  border: 0;
+  background: transparent;
   cursor: grab;
   pointer-events: auto;
   transition: transform 0.18s ease;
 
-  &:nth-child(1) { transform: rotate(-7deg); }
-  &:nth-child(2) { transform: rotate(2deg); }
-  &:nth-child(3) { transform: rotate(8deg); }
+  .c-board-photo {
+    box-shadow: 0 14px 28px rgb(21 21 21 / 26%);
+  }
+
+  &:nth-child(1) {
+    z-index: 1;
+    transform: rotate(-9deg) translateY(10px);
+  }
+
+  &:nth-child(2) {
+    z-index: 3;
+  }
+
+  &:nth-child(3) {
+    z-index: 2;
+    transform: rotate(9deg) translateY(10px);
+  }
+
+  &:not(:first-child) {
+    margin-left: -118px;
+  }
 }
 
 .c-placement-board__tray-photo.is-dragging {
-  opacity: 0.35;
+  opacity: 0.3;
 }
 
 .c-placement-board__ghost {
   position: fixed;
   z-index: 60;
-  width: 104px;
-  height: 124px;
-  border: 6px solid var(--grey-50);
-  border-bottom-width: 24px;
-  background-color: var(--grey-50);
-  background-position: center;
-  background-size: cover;
-  box-shadow: 0 18px 34px rgb(21 21 21 / 30%);
   transform: translate(-50%, -50%) rotate(-4deg);
   pointer-events: none;
+
+  .c-board-photo {
+    box-shadow: 0 22px 40px rgb(21 21 21 / 32%);
+  }
+}
+
+/* --- Sticker stamp riding the cursor (FigJam-style) -------------------- */
+.c-placement-board__viewport.is-stamping {
+  cursor: none;
+}
+
+.c-placement-board__stamp {
+  position: fixed;
+  z-index: 65;
+  width: 92px;
+  height: 92px;
+  transform: translate(-50%, -50%) rotate(-6deg);
+  pointer-events: none;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 12px rgb(0 0 0 / 35%));
+  }
 }
 
 /* --- Toolbar ------------------------------------------------------------ */
@@ -268,7 +295,7 @@
   inset: auto 0 0 0;
   z-index: 50;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   height: 86px;
   padding: 0 24px;
@@ -278,43 +305,72 @@
 .c-board-toolbar__tools {
   display: flex;
   align-items: flex-end;
-  gap: 22px;
-  height: 100%;
+  gap: 14px;
 }
 
+/* Each tool is a bottom-anchored window onto a taller graphic. Idle the window
+ * is short so the tool is cropped at the screen edge; selecting grows the window
+ * upward (no padding), revealing more — the tool "rises" out of the bar. */
 .c-board-toolbar__tool {
-  display: grid;
-  place-items: end center;
-  width: 48px;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  height: var(--tool-idle, 46px);
   padding: 0;
-  padding-top: 16px;
   border: 0;
   background: transparent;
   cursor: pointer;
-  transition: padding-top 0.2s ease;
+  overflow: hidden;
+  opacity: 0.7;
+  transition: height 0.2s ease, opacity 0.2s ease;
 
   img {
-    width: 40px;
-    height: 56px;
-    object-fit: contain;
-    object-position: bottom;
+    display: block;
+    width: 100%;
+    height: auto;
   }
 }
 
+.c-board-toolbar__tool--scotch {
+  width: 24px;
+  --tool-idle: 46px;
+  --tool-select: 70px;
+}
+
+.c-board-toolbar__tool--sticker {
+  width: 64px;
+  --tool-idle: 46px;
+  --tool-select: 70px;
+}
+
+.c-board-toolbar__tool--text {
+  width: 92px;
+  --tool-idle: 46px;
+  --tool-select: 70px;
+}
+
+.c-board-toolbar__tool--pen {
+  width: 22px;
+  --tool-idle: 54px;
+  --tool-select: 70px;
+}
+
 .c-board-toolbar__tool.is-active {
-  padding-top: 0;
+  height: var(--tool-select, 70px);
+  opacity: 1;
 }
 
 .c-board-toolbar__glyph {
-  color: rgb(255 255 255 / 60%);
-  font-size: 2.4rem;
+  color: var(--grey-50);
+  font-size: 4.2rem;
   font-weight: 500;
-  line-height: 0.8;
+  line-height: 0.9;
 }
 
 .c-board-toolbar__squares {
   display: flex;
+  align-self: center;
   align-items: center;
   gap: 14px;
 }
@@ -326,7 +382,6 @@
   height: 32px;
   padding: 0;
   border: 0;
-  border-radius: 6px;
   cursor: pointer;
 }
 
@@ -349,7 +404,6 @@
   display: block;
   width: 18px;
   height: 18px;
-  border-radius: 3px;
 }
 
 .c-board-toolbar__square--add {
@@ -375,22 +429,93 @@
   overflow-x: auto;
 }
 
-.c-board-toolbar__swatch {
-  flex: 0 0 auto;
+/* Scotch submenu: tape sizes on the left, texture picker on the right. */
+.c-board-toolbar__panel--scotch {
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 24px 8px 24px;
+  overflow: visible;
+}
+
+.c-board-toolbar__tapes {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.c-board-toolbar__tape {
   display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  padding: 6px;
+  place-items: start center;
+  padding: 0;
   border: 0;
-  border-radius: 8px;
-  background: rgb(255 255 255 / 8%);
+  background: transparent;
   cursor: pointer;
 
   img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    display: block;
+    width: auto;
+  }
+}
+
+.c-board-toolbar__tape--small img {
+  height: 44px;
+}
+
+.c-board-toolbar__tape--big img {
+  height: 66px;
+}
+
+.c-board-toolbar__scotch-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.c-board-toolbar__scotch-sep {
+  width: 1px;
+  height: 64px;
+  background: rgb(255 255 255 / 22%);
+}
+
+.c-board-toolbar__textures {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.c-board-toolbar__texture {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  img,
+  .c-board-toolbar__texture-fill {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.c-board-toolbar__select-frame {
+  position: absolute;
+  inset: -3px;
+  width: calc(100% + 6px);
+  height: calc(100% + 6px);
+  pointer-events: none;
+}
+
+.c-board-toolbar__texture--add {
+  background: var(--grey-900);
+
+  .c-board-toolbar__square-icon {
+    width: 20px;
+    height: 20px;
   }
 }
 
@@ -413,7 +538,6 @@
   height: 44px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
   background: rgb(255 255 255 / 6%);
   cursor: pointer;
 
@@ -442,9 +566,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 10px;
-  border-radius: 14px;
-  background: rgb(0 0 0 / 82%);
+  padding: 10px;  background: rgb(0 0 0 / 82%);
 }
 
 .c-board-toolbar__color {
@@ -452,7 +574,6 @@
   height: 34px;
   padding: 0;
   border: 2px solid var(--grey-50);
-  border-radius: 7px;
   cursor: pointer;
 }
 
@@ -470,9 +591,7 @@
   flex-direction: column;
   gap: 6px;
   min-width: 220px;
-  padding: 14px;
-  border-radius: 14px;
-  background: rgb(40 40 40 / 96%);
+  padding: 14px;  background: rgb(40 40 40 / 96%);
 }
 
 .c-board-toolbar__add-row {
@@ -480,9 +599,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 8px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
+  border: 0;  background: transparent;
   color: var(--grey-50);
   font-family: var(--font-body);
   font-size: 1rem;
@@ -511,9 +628,7 @@
   width: 48px;
   height: 48px;
   padding: 0;
-  border: 2px solid rgb(255 255 255 / 30%);
-  border-radius: 8px;
-  background-size: cover;
+  border: 2px solid rgb(255 255 255 / 30%);  background-size: cover;
   cursor: pointer;
 }
 
@@ -527,9 +642,7 @@
   width: 48px;
   height: 48px;
   padding: 0;
-  border: 0;
-  border-radius: 8px;
-  background: rgb(255 255 255 / 8%);
+  border: 0;  background: rgb(255 255 255 / 8%);
   cursor: pointer;
 }
 
@@ -537,7 +650,6 @@
   width: 28px;
   height: 28px;
   background: var(--grey-50);
-  border-radius: 4px;
 }
 
 .c-board-toolbar__shape-preview--circle {
@@ -564,7 +676,6 @@
   inset: 30% 0 0 0;
   display: flex;
   flex-direction: column;
-  border-radius: 22px 22px 0 0;
   background: rgb(30 30 30 / 98%);
   box-shadow: 0 -10px 40px rgb(0 0 0 / 40%);
   touch-action: none;
@@ -581,7 +692,6 @@
   display: block;
   width: 44px;
   height: 5px;
-  border-radius: 99px;
   background: rgb(255 255 255 / 35%);
 }
 
@@ -607,9 +717,7 @@
   place-items: center;
   aspect-ratio: 1;
   padding: 12px;
-  border: 0;
-  border-radius: 14px;
-  background: rgb(255 255 255 / 5%);
+  border: 0;  background: rgb(255 255 255 / 5%);
   cursor: pointer;
 
   img {
