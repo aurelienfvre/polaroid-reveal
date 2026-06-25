@@ -1,4 +1,4 @@
-import type { PointerEvent, RefObject } from "react";
+import type { Dispatch, PointerEvent, RefObject, SetStateAction } from "react";
 import { DevelopStage } from "@/features/reveal/components/DevelopStage";
 import { MemoryCanvas } from "@/features/reveal/components/MemoryCanvas";
 import { PersonalizeStage } from "@/features/reveal/components/PersonalizeStage";
@@ -7,12 +7,14 @@ import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraM
 import type {
   CanvasPhoto,
   ExperiencePhase,
+  PhotoCustomization,
   TiltStyle,
 } from "@/features/reveal/types/revealTypes";
 
 type Props = {
   activeIndex: number;
   cameraModel: PolaroidCameraModel;
+  customizations: Record<string, PhotoCustomization>;
   draggingId: string | null;
   isLastTirage: boolean;
   isPhotoFocused: boolean;
@@ -27,6 +29,7 @@ type Props = {
   onCanvasPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
   onCanvasPointerUp: () => void;
   onChangePhoto: () => void;
+  onCustomizationsChange: Dispatch<SetStateAction<Record<string, PhotoCustomization>>>;
   onPolaroidSelect: () => void;
   onShare: () => void;
   onShoot: () => void;
@@ -41,12 +44,20 @@ type Props = {
 
 export function ExperienceStage(props: Props) {
   if (props.phase === "personalize") {
-    return <PersonalizeStage onValidate={props.onValidatePersonalization} photos={props.photos} />;
+    return (
+      <PersonalizeStage
+        customizations={props.customizations}
+        onCustomizationsChange={props.onCustomizationsChange}
+        onValidate={props.onValidatePersonalization}
+        photos={props.photos}
+      />
+    );
   }
 
   if (props.phase === "canvas") {
     return (
       <MemoryCanvas
+        customizations={props.customizations}
         draggingId={props.draggingId}
         onPointerCancel={props.onCanvasPointerCancel}
         onPointerDown={props.onCanvasPointerDown}

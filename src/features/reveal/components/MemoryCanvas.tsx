@@ -1,8 +1,12 @@
 import type { PointerEvent } from "react";
 import { CanvasPhotoCard } from "@/features/reveal/components/CanvasPhotoCard";
-import type { CanvasPhoto } from "@/features/reveal/types/revealTypes";
+import type {
+  CanvasPhoto,
+  PhotoCustomization,
+} from "@/features/reveal/types/revealTypes";
 
 type Props = {
+  customizations: Record<string, PhotoCustomization>;
   draggingId: string | null;
   onPointerCancel: () => void;
   onPointerDown: (
@@ -15,6 +19,7 @@ type Props = {
 };
 
 export function MemoryCanvas({
+  customizations,
   draggingId,
   onPointerCancel,
   onPointerDown,
@@ -36,6 +41,7 @@ export function MemoryCanvas({
         <div className="c-memory-canvas__surface">
           {photos.map((photo) => (
             <CanvasPhotoCard
+              customization={customizations[photo.id]}
               isDragging={draggingId === photo.id}
               key={photo.id}
               onPointerCancel={onPointerCancel}

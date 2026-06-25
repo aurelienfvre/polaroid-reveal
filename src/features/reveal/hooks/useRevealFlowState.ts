@@ -4,12 +4,16 @@ import { DAILY_REVEAL_LIMIT } from "@/features/reveal/lib/canvasPhotos";
 import type {
   CanvasPhoto,
   ExperiencePhase,
+  PhotoCustomization,
 } from "@/features/reveal/types/revealTypes";
 
 export function useRevealFlowState() {
   const [phase, setPhase] = useState<ExperiencePhase>("camera");
   const [activeIndex, setActiveIndex] = useState(0);
   const [placedPhotos, setPlacedPhotos] = useState<CanvasPhoto[]>([]);
+  const [photoCustomizations, setPhotoCustomizations] = useState<
+    Record<string, PhotoCustomization>
+  >({});
   const [isPhotoFocused, setPhotoFocused] = useState(false);
   const highestCanvasZIndexRef = useRef(10);
   const isPhotoFocusedRef = useRef(false);
@@ -39,9 +43,11 @@ export function useRevealFlowState() {
     nextPhotoNumber: Math.min(placedPhotos.length + 1, DAILY_REVEAL_LIMIT),
     phase,
     phaseRef,
+    photoCustomizations,
     placedPhotos,
     setActiveIndex,
     setPhase,
+    setPhotoCustomizations,
     setPhotoFocused,
     setPlacedPhotos,
   };

@@ -1,6 +1,13 @@
 "use client";
 
-import { useRef, useState, type CSSProperties, type PointerEvent } from "react";
+import {
+  useRef,
+  useState,
+  type CSSProperties,
+  type Dispatch,
+  type PointerEvent,
+  type SetStateAction,
+} from "react";
 import { PersonalizePhotoCard } from "@/features/reveal/components/PersonalizePhotoCard";
 import { usePhotoPersonalization } from "@/features/reveal/hooks/usePhotoPersonalization";
 import {
@@ -9,17 +16,27 @@ import {
   PHOTO_TEXTURES,
   getFilterCss,
 } from "@/features/reveal/lib/photoFilters";
-import type { CanvasPhoto } from "@/features/reveal/types/revealTypes";
+import type {
+  CanvasPhoto,
+  PhotoCustomization,
+} from "@/features/reveal/types/revealTypes";
 
 const SWIPE_THRESHOLD = 56;
 
 type Props = {
+  customizations: Record<string, PhotoCustomization>;
+  onCustomizationsChange: Dispatch<SetStateAction<Record<string, PhotoCustomization>>>;
   onValidate: () => void;
   photos: CanvasPhoto[];
 };
 
-export function PersonalizeStage({ onValidate, photos }: Props) {
-  const perso = usePhotoPersonalization(photos);
+export function PersonalizeStage({
+  customizations,
+  onCustomizationsChange,
+  onValidate,
+  photos,
+}: Props) {
+  const perso = usePhotoPersonalization(photos, customizations, onCustomizationsChange);
   const [dragX, setDragX] = useState(0);
   const dragRef = useRef<{ startX: number; active: boolean }>({ startX: 0, active: false });
 

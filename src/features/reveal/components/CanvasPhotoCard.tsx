@@ -1,10 +1,17 @@
-import type { PointerEvent } from "react";
+import type { CSSProperties, PointerEvent } from "react";
+import {
+  getFilterCss,
+  getFontVar,
+  getTextureOpacity,
+} from "@/features/reveal/lib/photoFilters";
 import type {
   CanvasPhoto,
   CanvasPhotoStyle,
+  PhotoCustomization,
 } from "@/features/reveal/types/revealTypes";
 
 type Props = {
+  customization?: PhotoCustomization;
   isDragging: boolean;
   onPointerCancel: () => void;
   onPointerDown: (
@@ -17,6 +24,7 @@ type Props = {
 };
 
 export function CanvasPhotoCard({
+  customization,
   isDragging,
   onPointerCancel,
   onPointerDown,
@@ -31,6 +39,15 @@ export function CanvasPhotoCard({
     "--canvas-photo-rotate": `${photo.rotate}deg`,
     "--canvas-photo-z": photo.zIndex,
   };
+
+  const imageStyle: CSSProperties = {
+    filter: customization ? getFilterCss(customization.filterId) : undefined,
+  };
+  const grainOpacity = customization ? getTextureOpacity(customization.textureId) : 0;
+  const caption = customization?.text?.trim();
+  const captionStyle: CSSProperties = customization
+    ? { fontFamily: `var(${getFontVar(customization.fontId)}), cursive` }
+    : {};
 
   const className = [
     "c-canvas-photo",
@@ -49,9 +66,21 @@ export function CanvasPhotoCard({
       onPointerCancel={onPointerCancel}
     >
       <span className="c-canvas-photo__pin" />
-      <span className="c-canvas-photo__image" />
-      <span className="c-canvas-photo__title">{photo.title}</span>
-      <span className="c-canvas-photo__meta">{photo.dateLabel}</span>
+      <span className="c-canvas-photo__image" style={imageStyle}>
+        {grainOpacity > 0 && (
+          <span className="c-canvas-photo__grain" style={{ opacity: grainOpacity }} />
+        )}
+      </span>
+      {caption ? (
+        <span className="c-canvas-photo__caption" style={captionStyle}>
+          {caption}
+        </span>
+      ) : (
+        <>
+          <span className="c-canvas-photo__title">{photo.title}</span>
+          <span className="c-canvas-photo__meta">{photo.dateLabel}</span>
+        </>
+      )}
     </button>
   );
 }

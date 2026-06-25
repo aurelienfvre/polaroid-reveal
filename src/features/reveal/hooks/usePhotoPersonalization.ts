@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type Dispatch, type SetStateAction } from "react";
 import { DEFAULT_CUSTOMIZATION } from "@/features/reveal/lib/photoFilters";
 import type {
   CanvasPhoto,
@@ -6,10 +6,13 @@ import type {
   PhotoCustomization,
 } from "@/features/reveal/types/revealTypes";
 
-export function usePhotoPersonalization(photos: CanvasPhoto[]) {
+export function usePhotoPersonalization(
+  photos: CanvasPhoto[],
+  customById: Record<string, PhotoCustomization>,
+  setCustomById: Dispatch<SetStateAction<Record<string, PhotoCustomization>>>,
+) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeTab, setActiveTab] = useState<PersonalizeTab | null>(null);
-  const [customById, setCustomById] = useState<Record<string, PhotoCustomization>>({});
 
   const clampedIndex = photos.length > 0 ? Math.min(activeIndex, photos.length - 1) : 0;
   const activePhoto = photos[clampedIndex];
@@ -33,7 +36,7 @@ export function usePhotoPersonalization(photos: CanvasPhoto[]) {
         },
       }));
     },
-    [activePhoto],
+    [activePhoto, setCustomById],
   );
 
   const goToPhoto = useCallback(
