@@ -20,6 +20,7 @@ export type PhotoFontId = "bricolage" | "commit" | "indie" | "serif";
 export type PhotoCustomization = {
   filterId: PhotoFilterId;
   textureId: PhotoTextureId;
+  textureIntensity: number;
   text: string;
   fontId: PhotoFontId;
 };

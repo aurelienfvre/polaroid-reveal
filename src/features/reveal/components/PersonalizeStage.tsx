@@ -11,6 +11,7 @@ import {
 } from "react";
 import { PersonalizePhotoCard } from "@/features/reveal/components/PersonalizePhotoCard";
 import { PersonalizeFilterPanel } from "@/features/reveal/components/PersonalizeFilterPanel";
+import { PersonalizeTexturePanel } from "@/features/reveal/components/PersonalizeTexturePanel";
 import {
   CheckIcon,
   FilterIcon,
@@ -18,9 +19,9 @@ import {
   TextureIcon,
 } from "@/features/reveal/components/PersonalizeIcons";
 import { usePhotoPersonalization } from "@/features/reveal/hooks/usePhotoPersonalization";
+import { usePersonalizeSwipeHint } from "@/features/reveal/hooks/usePersonalizeSwipeHint";
 import {
   PHOTO_FONTS,
-  PHOTO_TEXTURES,
 } from "@/features/reveal/lib/photoFilters";
 import type {
   CanvasPhoto,
@@ -43,10 +44,12 @@ export function PersonalizeStage({
   photos,
 }: Props) {
   const perso = usePhotoPersonalization(photos, customizations, onCustomizationsChange);
+  const swipeHint = usePersonalizeSwipeHint(photos.length);
   const [dragX, setDragX] = useState(0);
   const dragRef = useRef<{ startX: number; active: boolean }>({ startX: 0, active: false });
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    swipeHint.registerSwipeActivity();
     dragRef.current = { startX: event.clientX, active: true };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -55,6 +58,7 @@ export function PersonalizeStage({
     if (!dragRef.current.active) {
       return;
     }
+    swipeHint.registerSwipeActivity();
     setDragX(event.clientX - dragRef.current.startX);
   };
 
@@ -111,6 +115,7 @@ export function PersonalizeStage({
               key={photo.id}
               onTextChange={(text) => perso.updateActive({ text })}
               photo={photo}
+              showSwipeHelper={isActive && swipeHint.showSwipeHint}
               stackStyle={stackStyle}
             />
           );
@@ -147,22 +152,12 @@ export function PersonalizeStage({
         </div>
       )}
 
-      {perso.activeTab === "texture" && (
-        <div className="c-perso__panel c-perso__panel--texture">
-          {PHOTO_TEXTURES.map((texture) => (
-            <button
-              className={[
-                "c-perso__texture",
-                perso.activeCustomization.textureId === texture.id ? "is-selected" : "",
-              ].filter(Boolean).join(" ")}
-              key={texture.id}
-              type="button"
-              onClick={() => perso.updateActive({ textureId: texture.id })}
-            >
-              {texture.label}
-            </button>
-          ))}
-        </div>
+      {perso.activeTab === "texture" && perso.activePhoto && (
+        <PersonalizeTexturePanel
+          customization={perso.activeCustomization}
+          imageUrl={perso.activePhoto.imageUrl}
+          onChange={perso.updateActive}
+        />
       )}
 
       <div className="c-perso__toolbar">

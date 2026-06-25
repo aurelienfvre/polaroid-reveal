@@ -43,7 +43,9 @@ export function CanvasPhotoCard({
   const imageStyle: CSSProperties = {
     filter: customization ? getFilterCss(customization.filterId) : undefined,
   };
-  const grainOpacity = customization ? getTextureOpacity(customization.textureId) : 0;
+  const grainOpacity = customization
+    ? getTextureOpacity(customization.textureId, customization.textureIntensity)
+    : 0;
   const caption = customization?.text?.trim();
   const captionStyle: CSSProperties = customization
     ? { fontFamily: getFontCss(customization.fontId) }
@@ -68,7 +70,13 @@ export function CanvasPhotoCard({
       <span className="c-canvas-photo__pin" />
       <span className="c-canvas-photo__image" style={imageStyle}>
         {grainOpacity > 0 && (
-          <span className="c-canvas-photo__grain" style={{ opacity: grainOpacity }} />
+          <span
+            className={[
+              "c-canvas-photo__grain",
+              `c-canvas-photo__grain--${customization?.textureId ?? "none"}`,
+            ].join(" ")}
+            style={{ opacity: grainOpacity }}
+          />
         )}
       </span>
       {caption ? (

@@ -18,7 +18,10 @@ export function usePhotoPersonalization(
   const activePhoto = photos[clampedIndex];
 
   const getCustomization = useCallback(
-    (id: string): PhotoCustomization => customById[id] ?? DEFAULT_CUSTOMIZATION,
+    (id: string): PhotoCustomization => ({
+      ...DEFAULT_CUSTOMIZATION,
+      ...customById[id],
+    }),
     [customById],
   );
 

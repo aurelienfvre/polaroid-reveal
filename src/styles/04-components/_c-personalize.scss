@@ -46,6 +46,7 @@
 }
 
 .c-perso-card__paper {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -53,6 +54,7 @@
   padding: 6% 6% 0;
   background: var(--grey-50);
   box-shadow: 0 2px 10px rgb(0 0 0 / 16%);
+  isolation: isolate;
 }
 
 .c-perso-card__image {
@@ -66,9 +68,28 @@
 .c-perso-card__grain {
   position: absolute;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   mix-blend-mode: overlay;
   pointer-events: none;
+}
+
+.c-perso-card__grain--grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.c-perso-card__grain--dust {
+  background-image:
+    radial-gradient(circle at 18% 28%, rgb(255 255 255 / 92%) 0 1px, transparent 2px),
+    radial-gradient(circle at 72% 34%, rgb(0 0 0 / 72%) 0 1px, transparent 2px),
+    radial-gradient(circle at 38% 72%, rgb(255 255 255 / 82%) 0 1px, transparent 2px),
+    radial-gradient(circle at 86% 78%, rgb(0 0 0 / 62%) 0 1px, transparent 2px);
+  background-size: 92px 92px, 128px 128px, 110px 110px, 146px 146px;
+}
+
+.c-perso-card__paper > .c-polaroid-card__helper--swipe {
+  z-index: 6;
+  width: 13%;
+  opacity: 0.78;
+  animation: c-perso-swipe-helper 1.5s cubic-bezier(0.45, 0, 0.2, 1) 2 both;
 }
 
 .c-perso-card__caption {
@@ -84,6 +105,28 @@
   line-height: 1.1;
   text-align: center;
   word-break: break-word;
+}
+
+@keyframes c-perso-swipe-helper {
+  0% {
+    transform: translate(-50%, -50%);
+  }
+
+  78% {
+    transform: translate(280%, -50%);
+  }
+
+  100% {
+    transform: translate(280%, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .c-perso-card__paper > .c-polaroid-card__helper--swipe {
+    opacity: 0.72;
+    animation: none;
+    transform: translate(-50%, -50%);
+  }
 }
 
 .c-perso-card__caption-editor {
@@ -126,6 +169,11 @@
   background: transparent;
 }
 
+.c-perso__panel--texture {
+  gap: var(--space-3);
+  padding: 0 0 var(--space-4);
+}
+
 .c-perso__panel-label {
   display: flex;
   align-items: center;
@@ -138,7 +186,8 @@
   line-height: 1;
 }
 
-.c-perso__panel--filter .c-perso__panel-label {
+.c-perso__panel--filter .c-perso__panel-label,
+.c-perso__panel--texture .c-perso__panel-label {
   position: absolute;
   bottom: calc(100% + var(--space-5));
   left: 50%;
@@ -161,11 +210,36 @@
   overscroll-behavior-x: contain;
 }
 
+.c-perso__textures {
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  height: clamp(82px, 10dvh, 98px);
+  overflow: hidden;
+  touch-action: pan-x;
+}
+
 .c-perso__filters::-webkit-scrollbar {
   display: none;
 }
 
+.c-perso__textures::-webkit-scrollbar {
+  display: none;
+}
+
 .c-perso__filter-track {
+  position: absolute;
+  top: clamp(14px, 2dvh, 18px);
+  left: 50%;
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  width: max-content;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.c-perso__texture-track {
   position: absolute;
   top: clamp(14px, 2dvh, 18px);
   left: 50%;
@@ -188,20 +262,61 @@
   transition: opacity 180ms ease;
 }
 
+.c-perso__texture {
+  position: relative;
+  flex: 0 0 54px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  opacity: 0.62;
+  transition: opacity 180ms ease;
+}
+
+.c-perso__texture.is-selected {
+  opacity: 1;
+}
+
 .c-perso__filter.is-selected {
   opacity: 1;
 }
 
-.c-perso__filter-thumb {
+.c-perso__filter-thumb,
+.c-perso__texture-thumb {
+  position: relative;
   display: block;
   width: 54px;
   height: 54px;
   background: var(--grey-900) center / cover no-repeat;
+  overflow: hidden;
+}
+
+.c-perso__texture-thumb::after {
+  position: absolute;
+  inset: 0;
+  background-image: var(--texture-image);
+  mix-blend-mode: overlay;
+  opacity: var(--texture-opacity, 0);
+  content: "";
+  pointer-events: none;
+}
+
+.c-perso__texture--grain {
+  --texture-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.c-perso__texture--dust {
+  --texture-image:
+    radial-gradient(circle at 18% 28%, rgb(255 255 255 / 92%) 0 1px, transparent 2px),
+    radial-gradient(circle at 72% 34%, rgb(0 0 0 / 72%) 0 1px, transparent 2px),
+    radial-gradient(circle at 38% 72%, rgb(255 255 255 / 82%) 0 1px, transparent 2px),
+    radial-gradient(circle at 86% 78%, rgb(0 0 0 / 62%) 0 1px, transparent 2px);
 }
 
 // Square outline (vertical edges cut in the middle) shown 4px around the
 // selected thumbnail. Uses currentColor so it can later take a picked colour.
-.c-perso__filter-frame {
+.c-perso__filter-frame,
+.c-perso__texture-frame {
   position: absolute;
   top: calc(clamp(14px, 2dvh, 18px) - 5px);
   left: 50%;
@@ -215,8 +330,16 @@
   transform: translateX(-50%);
 }
 
-.c-perso__fonts,
-.c-perso__panel--texture {
+.c-perso__texture-range {
+  width: min(48vw, 280px);
+  accent-color: var(--grey-50);
+}
+
+.c-perso__texture-range:disabled {
+  opacity: 0.28;
+}
+
+.c-perso__fonts {
   display: flex;
   gap: clamp(var(--space-6), 9vw, 7rem);
   justify-content: center;
@@ -235,22 +358,8 @@
   transition: opacity 160ms ease;
 }
 
-.c-perso__texture {
-  padding: 0.45rem 0.9rem;
-  border: 1px solid var(--color-line);
-  background: var(--grey-50);
-  color: var(--grey-900);
-  cursor: pointer;
-}
-
 .c-perso__font.is-selected {
   opacity: 1;
-}
-
-.c-perso__texture.is-selected {
-  border-color: var(--grey-900);
-  background: var(--grey-900);
-  color: var(--grey-50);
 }
 
 // Bottom toolbar.

@@ -15,6 +15,7 @@ type Props = {
   isTextActive?: boolean;
   onTextChange?: (text: string) => void;
   photo: CanvasPhoto;
+  showSwipeHelper?: boolean;
   stackStyle?: CSSProperties;
 };
 
@@ -24,6 +25,7 @@ export function PersonalizePhotoCard({
   isTextActive = false,
   onTextChange,
   photo,
+  showSwipeHelper = false,
   stackStyle,
 }: Props) {
   const editorRef = useRef<HTMLSpanElement>(null);
@@ -31,7 +33,12 @@ export function PersonalizePhotoCard({
     filter: getFilterCss(customization.filterId),
     backgroundImage: `url("${photo.imageUrl}")`,
   } as CSSProperties;
-  const grainStyle = { opacity: getTextureOpacity(customization.textureId) } as CSSProperties;
+  const grainStyle = {
+    opacity: getTextureOpacity(
+      customization.textureId,
+      customization.textureIntensity,
+    ),
+  } as CSSProperties;
   const captionStyle = {
     fontFamily: getFontCss(customization.fontId),
   } as CSSProperties;
@@ -88,7 +95,9 @@ export function PersonalizePhotoCard({
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (canEditText) {
+    const target = event.target as HTMLElement;
+
+    if (canEditText && target.closest(".c-perso-card__caption")) {
       event.stopPropagation();
     }
   };
@@ -101,7 +110,13 @@ export function PersonalizePhotoCard({
         onPointerDown={handlePointerDown}
       >
         <div className="c-perso-card__image" style={imageStyle}>
-          <span className="c-perso-card__grain" style={grainStyle} />
+          <span
+            className={[
+              "c-perso-card__grain",
+              `c-perso-card__grain--${customization.textureId}`,
+            ].join(" ")}
+            style={grainStyle}
+          />
         </div>
         <div className="c-perso-card__caption" style={captionStyle}>
           {canEditText ? (
@@ -122,6 +137,12 @@ export function PersonalizePhotoCard({
             customization.text
           )}
         </div>
+        {showSwipeHelper && (
+          <span
+            className="c-polaroid-card__helper c-polaroid-card__helper--swipe"
+            aria-hidden="true"
+          />
+        )}
       </div>
     </div>
   );
