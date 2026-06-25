@@ -19,18 +19,30 @@ export function useDevelopmentController({
   phaseRef,
   polaroidMotionRef,
 }: Params) {
-  const [revealProgress, setRevealProgress] = useState(0);
+  // `isRevealed` is the only React state — the continuous develop progress is
+  // written straight to the print's CSS var so shaking/moving the photo doesn't
+  // re-render the whole tree on every tick (which is what made desktop develop
+  // feel slow). The tree only re-renders once, when it flips to revealed.
+  const [isRevealed, setIsRevealed] = useState(false);
   const revealProgressRef = useRef(0);
   const hasRevealedRef = useRef(false);
   const lastShakeHapticAtRef = useRef(0);
   const triggerHaptic = usePolaroidHaptics();
 
+  const writeProgress = useCallback(
+    (value: number) => {
+      polaroidMotionRef.current?.style.setProperty("--reveal-progress", `${value}`);
+    },
+    [polaroidMotionRef],
+  );
+
   const resetDevelopmentState = useCallback(() => {
     revealProgressRef.current = 0;
     hasRevealedRef.current = false;
-    setRevealProgress(0);
+    setIsRevealed(false);
+    writeProgress(0);
     resetDevelopmentImpulse(polaroidMotionRef.current);
-  }, [polaroidMotionRef]);
+  }, [polaroidMotionRef, writeProgress]);
 
   const triggerShakeHaptic = useCallback(
     (impulse?: MotionImpulse) => {
@@ -71,19 +83,20 @@ export function useDevelopmentController({
 
       playDevelopmentImpulse(polaroidMotionRef.current, amount, impulse);
       revealProgressRef.current = nextProgress;
-      setRevealProgress(nextProgress);
+      writeProgress(nextProgress);
 
       triggerShakeHaptic(impulse);
 
-      if (nextProgress >= 1 && !hasRevealedRef.current) {
+      if (nextProgress >= 1) {
         hasRevealedRef.current = true;
         // Snap the print straight as soon as it's developed so it stops feeling
         // like it's still moving (mobile motion is sensitive).
         resetDevelopmentImpulse(polaroidMotionRef.current);
         triggerHaptic("reveal", { intensity: 0.8 });
+        setIsRevealed(true);
       }
     },
-    [canDevelopRef, phaseRef, polaroidMotionRef, triggerHaptic, triggerShakeHaptic],
+    [canDevelopRef, phaseRef, polaroidMotionRef, triggerHaptic, triggerShakeHaptic, writeProgress],
   );
 
   const revealNow = useCallback(() => {
@@ -93,16 +106,16 @@ export function useDevelopmentController({
 
     revealProgressRef.current = 1;
     hasRevealedRef.current = true;
-    setRevealProgress(1);
+    writeProgress(1);
     resetDevelopmentImpulse(polaroidMotionRef.current);
     triggerHaptic("reveal", { intensity: 0.8 });
-  }, [polaroidMotionRef, triggerHaptic]);
+    setIsRevealed(true);
+  }, [polaroidMotionRef, triggerHaptic, writeProgress]);
 
   return {
     developMemory,
-    isRevealed: revealProgress >= 1,
+    isRevealed,
     resetDevelopmentState,
     revealNow,
-    revealProgress,
   };
 }

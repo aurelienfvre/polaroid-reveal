@@ -136,6 +136,7 @@ export function PersonalizeStage({
                     filter: getFilterCss(filter.id),
                   }}
                 />
+                <span className="c-perso__filter-frame" aria-hidden="true" />
               </button>
             ))}
           </div>
@@ -201,9 +202,11 @@ export function PersonalizeStage({
             <TextureIcon />
           </PersoTool>
         </div>
+        <span className="c-perso__separator" aria-hidden="true" />
         <button className="c-perso__validate" type="button" onClick={onValidate}>
+          <span className="c-perso__validate-stripe" aria-hidden="true" />
           <CheckIcon />
-          VALIDATE
+          GO TO BOARD
         </button>
       </div>
     </section>

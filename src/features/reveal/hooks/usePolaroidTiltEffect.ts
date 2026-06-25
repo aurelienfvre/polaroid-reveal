@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import type { RefObject } from "react";
 import type { DeviceTilt } from "@/hooks/useDeviceOrientation";
 import { normalizeTilt } from "@/lib/gyroscope/normalizeTilt";
@@ -7,7 +7,7 @@ type Params = {
   isFocused: boolean;
   isRevealed: boolean;
   motionRef: RefObject<HTMLElement | null>;
-  orientation: DeviceTilt;
+  orientationRef: RefObject<DeviceTilt>;
   permissionState: string;
   phase: string;
 };
@@ -21,62 +21,54 @@ const MOTION_VARS = [
   "--motion-light-y",
 ];
 
+function resetMotion(element: HTMLElement) {
+  MOTION_VARS.forEach((name) => element.style.setProperty(name, "0"));
+}
+
 export function usePolaroidTiltEffect({
   isFocused,
   isRevealed,
   motionRef,
-  orientation,
+  orientationRef,
   permissionState,
   phase,
 }: Params) {
-  const interactionTilt = useMemo(() => {
-    if (permissionState !== "granted") {
-      return { x: 0, y: 0 };
-    }
-
-    return normalizeTilt(orientation);
-  }, [orientation, permissionState]);
-
   useEffect(() => {
-    if (!motionRef.current) {
+    const element = motionRef.current;
+
+    if (!element) {
       return;
     }
 
-    // Only react to the gyroscope while the print is actively being held
-    // (focused, not yet revealed). At rest, once revealed, or in any other
-    // phase, keep it straight — the motion is too sensitive otherwise and it
-    // shouldn't move until the user taps it to shake.
+    // Only react to the gyroscope while the print is actively held (focused, not
+    // yet revealed). At rest, once revealed, or in any other phase, keep it
+    // straight — it's too sensitive otherwise and shouldn't move until tapped.
     const shouldTilt =
       phase === "develop" && isFocused && !isRevealed && permissionState === "granted";
 
     if (!shouldTilt) {
-      MOTION_VARS.forEach((name) => motionRef.current?.style.setProperty(name, "0"));
+      resetMotion(element);
       return;
     }
 
-    motionRef.current.style.setProperty(
-      "--motion-depth-x",
-      `${interactionTilt.x * 20}deg`,
-    );
-    motionRef.current.style.setProperty(
-      "--motion-depth-y",
-      `${interactionTilt.y * -16}deg`,
-    );
-    motionRef.current.style.setProperty(
-      "--motion-image-x",
-      `${interactionTilt.x * 44}px`,
-    );
-    motionRef.current.style.setProperty(
-      "--motion-image-y",
-      `${interactionTilt.y * 34}px`,
-    );
-    motionRef.current.style.setProperty(
-      "--motion-light-x",
-      `${interactionTilt.x * 58}px`,
-    );
-    motionRef.current.style.setProperty(
-      "--motion-light-y",
-      `${interactionTilt.y * 44}px`,
-    );
-  }, [interactionTilt, isFocused, isRevealed, motionRef, permissionState, phase]);
+    // Read the orientation ref in a rAF loop and write the tilt CSS vars
+    // imperatively — no React re-render per device-orientation event.
+    let frameId = 0;
+    const tick = () => {
+      const tilt = normalizeTilt(orientationRef.current);
+      element.style.setProperty("--motion-depth-x", `${tilt.x * 20}deg`);
+      element.style.setProperty("--motion-depth-y", `${tilt.y * -16}deg`);
+      element.style.setProperty("--motion-image-x", `${tilt.x * 44}px`);
+      element.style.setProperty("--motion-image-y", `${tilt.y * 34}px`);
+      element.style.setProperty("--motion-light-x", `${tilt.x * 58}px`);
+      element.style.setProperty("--motion-light-y", `${tilt.y * 44}px`);
+      frameId = window.requestAnimationFrame(tick);
+    };
+
+    tick();
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [isFocused, isRevealed, motionRef, orientationRef, permissionState, phase]);
 }

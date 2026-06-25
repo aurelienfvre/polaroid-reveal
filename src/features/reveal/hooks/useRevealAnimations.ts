@@ -70,8 +70,14 @@ export function useRevealAnimations({
         return;
       }
 
-      // Re-runs on activeIndex too, so a freshly-mounted card from
-      // "Change this photo" lands at the focused position/size, not the rest one.
+      // A light opacity fade so swapping the photo (reroll) reads as a soft
+      // cross-change rather than a hard cut. Re-runs on activeIndex too, so a
+      // freshly-mounted card lands at the focused position/size, not the rest one.
+      gsap.fromTo(
+        ".c-polaroid-stack",
+        { autoAlpha: 0.15 },
+        { autoAlpha: 1, duration: 0.3, ease: "power2.out" },
+      );
       animateFocusedPhoto();
     },
     { scope: stageRef, dependencies: [isPhotoFocused, phase, activeIndex] },

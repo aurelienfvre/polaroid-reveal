@@ -41,7 +41,6 @@ type Props = {
   phase: ExperiencePhase;
   photos: CanvasPhoto[];
   shootNonce: number;
-  revealProgress: number;
   tiltStyle: TiltStyle;
 };
 
@@ -93,7 +92,6 @@ export function ExperienceStage(props: Props) {
           onShowMyPhotos={props.onShowMyPhotos}
           onSkipReveal={props.onSkipReveal}
           onTakeNewPhoto={props.onTakeNewPhoto}
-          revealProgress={props.revealProgress}
           tiltStyle={props.tiltStyle}
         />
       )}

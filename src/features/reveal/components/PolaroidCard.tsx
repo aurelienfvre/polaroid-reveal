@@ -9,7 +9,6 @@ type Props = {
   memory: Memory;
   motionRef?: RefObject<HTMLButtonElement | null>;
   onSelect: () => void;
-  revealProgress: number;
   showHelper?: boolean;
   tiltStyle?: TiltStyle;
 };
@@ -21,7 +20,6 @@ export function PolaroidCard({
   memory,
   motionRef,
   onSelect,
-  revealProgress,
   showHelper = false,
   tiltStyle,
 }: Props) {
@@ -33,7 +31,6 @@ export function PolaroidCard({
     "c-polaroid-card",
     `c-polaroid-card--tone-${memory.tone}`,
     isActive ? "c-polaroid-card--is-active" : "c-polaroid-card--is-parked",
-    isActive && revealProgress > 0 ? "c-polaroid-card--is-developing" : "",
     isFocused ? "c-polaroid-card--is-focused" : "",
     isActive && isRevealed ? "c-polaroid-card--is-revealed" : "",
   ].filter(Boolean).join(" ");

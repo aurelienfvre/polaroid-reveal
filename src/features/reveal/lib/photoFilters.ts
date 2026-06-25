@@ -15,7 +15,7 @@ export const PHOTO_FILTERS: ReadonlyArray<{
   { id: "sunset", label: "Sunset", css: "saturate(1.4) contrast(1.05) sepia(0.28)" },
   { id: "cool", label: "Cool", css: "saturate(1.1) hue-rotate(-12deg) brightness(1.06)" },
   { id: "vivid", label: "Vivid", css: "saturate(1.65) contrast(1.12)" },
-  { id: "noir", label: "Noir", css: "grayscale(1) contrast(1.4) brightness(0.92)" },
+  { id: "noir", label: "B&N", css: "grayscale(1) contrast(1.4) brightness(0.92)" },
 ];
 
 export const PHOTO_TEXTURES: ReadonlyArray<{

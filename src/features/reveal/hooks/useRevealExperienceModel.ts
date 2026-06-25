@@ -55,7 +55,7 @@ export function useRevealExperienceModel(
     isFocused: flow.isPhotoFocused,
     isRevealed: development.isRevealed,
     motionRef: polaroidMotionRef,
-    orientation: motion.orientation,
+    orientationRef: motion.orientationRef,
     permissionState: motion.permissionState,
     phase: flow.phase,
   });
@@ -84,9 +84,8 @@ export function useRevealExperienceModel(
       onValidatePersonalization: photo.handleValidatePersonalization,
       phase: flow.phase,
       photos: flow.placedPhotos,
-      revealProgress: development.revealProgress,
       shootNonce: flow.shootNonce,
-      tiltStyle: getTiltStyle(development.revealProgress),
+      tiltStyle: getTiltStyle(development.isRevealed ? 1 : 0),
     },
   };
 }

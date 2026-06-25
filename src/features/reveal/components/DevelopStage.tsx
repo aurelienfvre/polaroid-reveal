@@ -18,7 +18,6 @@ type Props = {
   onShowMyPhotos: () => void;
   onSkipReveal: () => void;
   onTakeNewPhoto: () => void;
-  revealProgress: number;
   tiltStyle: TiltStyle;
 };
 
@@ -35,7 +34,6 @@ export function DevelopStage({
   onShowMyPhotos,
   onSkipReveal,
   onTakeNewPhoto,
-  revealProgress,
   tiltStyle,
 }: Props) {
   const activeMemory = MEMORIES[activeIndex];
@@ -53,7 +51,6 @@ export function DevelopStage({
           memory={activeMemory}
           motionRef={motionRef}
           onSelect={onPolaroidSelect}
-          revealProgress={revealProgress}
           showHelper={!isPhotoFocused && !isRevealed}
           tiltStyle={tiltStyle}
         />

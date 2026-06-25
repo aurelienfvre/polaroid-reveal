@@ -27,7 +27,11 @@ const SENSOR_PROGRESS_COOLDOWN_MS = 150;
 const SHAKE_ENERGY_DECAY = 0.8;
 
 export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
-  const [orientation, setOrientation] = useState<DeviceTilt>(EMPTY_TILT);
+  // Orientation lives in a ref, not state: deviceorientation fires ~60×/sec and
+  // storing it in state re-rendered the whole tree every frame while tilting,
+  // which is what made the develop/shake screen stutter. Consumers read the ref
+  // imperatively (rAF) instead.
+  const orientationRef = useRef<DeviceTilt>(EMPTY_TILT);
   const [permissionState, setPermissionState] =
     useState<DeviceOrientationPermissionState>("idle");
   const [isListening, setIsListening] = useState(false);
@@ -48,11 +52,11 @@ export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
     }
 
     const handleOrientation = (event: DeviceOrientationEvent) => {
-      setOrientation({
+      orientationRef.current = {
         alpha: event.alpha,
         beta: event.beta,
         gamma: event.gamma,
-      });
+      };
     };
 
     const handleMotion = (event: DeviceMotionEvent) => {
@@ -103,5 +107,5 @@ export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
     };
   }, [isListening, onMotionProgress]);
 
-  return { orientation, permissionState, isSupported, requestAccess };
+  return { orientationRef, permissionState, isSupported, requestAccess };
 }
