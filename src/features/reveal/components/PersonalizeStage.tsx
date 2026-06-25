@@ -82,6 +82,16 @@ export function PersonalizeStage({
     perso.activeTab ? `c-perso--is-${perso.activeTab}` : "",
   ].filter(Boolean).join(" ");
 
+  const updateActive = (patch: Partial<PhotoCustomization>) => {
+    swipeHint.registerSwipeActivity();
+    perso.updateActive(patch);
+  };
+
+  const toggleTool = (tab: Parameters<typeof perso.toggleTab>[0]) => {
+    swipeHint.registerSwipeActivity();
+    perso.toggleTab(tab);
+  };
+
   return (
     <section className={className}>
       <div
@@ -113,9 +123,9 @@ export function PersonalizeStage({
               isActive={isActive}
               isTextActive={perso.activeTab === "text"}
               key={photo.id}
-              onTextChange={(text) => perso.updateActive({ text })}
+              onTextChange={(text) => updateActive({ text })}
               photo={photo}
-              showSwipeHelper={isActive && swipeHint.showSwipeHint}
+              showSwipeHelper={isActive && !perso.activeTab && swipeHint.showSwipeHint}
               stackStyle={stackStyle}
             />
           );
@@ -126,7 +136,7 @@ export function PersonalizeStage({
         <PersonalizeFilterPanel
           customization={perso.activeCustomization}
           imageUrl={perso.activePhoto.imageUrl}
-          onChange={(filterId) => perso.updateActive({ filterId })}
+          onChange={(filterId) => updateActive({ filterId })}
         />
       )}
 
@@ -143,7 +153,7 @@ export function PersonalizeStage({
                 type="button"
                 aria-label={font.label}
                 style={{ fontFamily: font.css }}
-                onClick={() => perso.updateActive({ fontId: font.id })}
+                onClick={() => updateActive({ fontId: font.id })}
               >
                 Aa
               </button>
@@ -156,20 +166,20 @@ export function PersonalizeStage({
         <PersonalizeTexturePanel
           customization={perso.activeCustomization}
           imageUrl={perso.activePhoto.imageUrl}
-          onChange={perso.updateActive}
+          onChange={updateActive}
         />
       )}
 
       <div className="c-perso__toolbar">
         <span className="c-perso__toolbar-stripe" aria-hidden="true" />
         <div className="c-perso__tools">
-          <PersoTool active={perso.activeTab === "filter"} label="Filter" onClick={() => perso.toggleTab("filter")}>
+          <PersoTool active={perso.activeTab === "filter"} label="Filter" onClick={() => toggleTool("filter")}>
             <FilterIcon />
           </PersoTool>
-          <PersoTool active={perso.activeTab === "text"} label="Text" onClick={() => perso.toggleTab("text")}>
+          <PersoTool active={perso.activeTab === "text"} label="Text" onClick={() => toggleTool("text")}>
             <TextIcon />
           </PersoTool>
-          <PersoTool active={perso.activeTab === "texture"} label="Texture" onClick={() => perso.toggleTab("texture")}>
+          <PersoTool active={perso.activeTab === "texture"} label="Texture" onClick={() => toggleTool("texture")}>
             <TextureIcon />
           </PersoTool>
         </div>

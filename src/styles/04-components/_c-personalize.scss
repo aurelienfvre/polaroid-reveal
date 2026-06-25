@@ -22,7 +22,8 @@
   cursor: grab;
 }
 
-.c-perso--is-filter .c-perso__stage {
+.c-perso--is-filter .c-perso__stage,
+.c-perso--is-texture .c-perso__stage {
   transform: translateY(calc(var(--perso-filter-stage-lift) * -1));
 }
 

@@ -84,10 +84,7 @@ export function CanvasPhotoCard({
           {caption}
         </span>
       ) : (
-        <>
-          <span className="c-canvas-photo__title">{photo.title}</span>
-          <span className="c-canvas-photo__meta">{photo.dateLabel}</span>
-        </>
+        <span className="c-canvas-photo__caption c-canvas-photo__caption--empty" aria-hidden="true" />
       )}
     </button>
   );

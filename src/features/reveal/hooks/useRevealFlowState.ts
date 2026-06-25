@@ -9,7 +9,7 @@ import type {
 
 export function useRevealFlowState() {
   const [phase, setPhase] = useState<ExperiencePhase>("camera");
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [activeIndex, setActiveIndex] = useState(() => getRandomMemoryIndex());
   const [placedPhotos, setPlacedPhotos] = useState<CanvasPhoto[]>([]);
   const [photoCustomizations, setPhotoCustomizations] = useState<
     Record<string, PhotoCustomization>
@@ -59,4 +59,8 @@ export function useRevealFlowState() {
     setShootNonce,
     shootNonce,
   };
+}
+
+function getRandomMemoryIndex() {
+  return Math.floor(Math.random() * MEMORIES.length);
 }
