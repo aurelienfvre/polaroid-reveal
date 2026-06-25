@@ -1,7 +1,17 @@
 .p-home {
-  width: min(100%, 1180px);
+  width: min(100%, 1440px);
   margin-inline: auto;
   padding: clamp(1rem, 4vw, 3rem);
+}
+
+.p-home--is-camera,
+.p-home--is-develop,
+.p-home--is-personalize {
+  width: 100%;
+  height: 100dvh;
+  padding: 0;
+  background: var(--grey-500);
+  overflow: hidden;
 }
 
 .p-home__experience {
@@ -13,12 +23,14 @@
 }
 
 .p-home__experience--is-camera,
-.p-home__experience--is-develop {
-  grid-template-columns: 1fr;
-  min-height: calc(100dvh - clamp(2rem, 8vw, 6rem));
+.p-home__experience--is-develop,
+.p-home__experience--is-personalize {
+  height: 100dvh;
 }
 
 .p-home__stage {
+  display: grid;
+  align-items: center;
   min-width: 0;
 }
 

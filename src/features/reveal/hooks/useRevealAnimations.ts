@@ -1,12 +1,23 @@
+import { useRef } from "react";
 import type { RefObject } from "react";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
+import {
+  animateCameraEntry,
+  animateCameraReturn,
+  animateCanvasEntry,
+  animateDevelopEntry,
+  animateFocusedPhoto,
+  animateRevealedPhoto,
+} from "@/features/reveal/lib/revealAnimationTimelines";
+import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
 import type { ExperiencePhase } from "@/features/reveal/types/revealTypes";
 
 gsap.registerPlugin(useGSAP);
 
 type Params = {
   activeIndex: number;
+  cameraModel: PolaroidCameraModel;
   isPhotoFocused: boolean;
   isRevealed: boolean;
   phase: ExperiencePhase;
@@ -15,45 +26,42 @@ type Params = {
 
 export function useRevealAnimations({
   activeIndex,
+  cameraModel,
   isPhotoFocused,
   isRevealed,
   phase,
   stageRef,
 }: Params) {
+  const hasEnteredCameraRef = useRef(false);
+  const previousPhaseRef = useRef<ExperiencePhase | null>(null);
+
   useGSAP(
     () => {
+      const previousPhase = previousPhaseRef.current;
+
       if (phase === "camera") {
-        gsap.fromTo(
-          ".c-polaroid-camera",
-          { autoAlpha: 0, y: 32, scale: 0.96 },
-          { autoAlpha: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" },
-        );
+        if (!hasEnteredCameraRef.current) {
+          animateCameraEntry();
+          hasEnteredCameraRef.current = true;
+        } else if (previousPhase === "develop") {
+          animateCameraReturn();
+        }
       }
 
-      if (phase === "develop") {
-        gsap.fromTo(
-          ".c-polaroid-card--is-active",
-          { autoAlpha: 0, y: 180, scale: 0.38, rotate: -5 },
-          {
-            autoAlpha: 1,
-            y: 72,
-            scale: 0.46,
-            rotate: -3,
-            duration: 0.9,
-            ease: "expo.out",
-          },
-        );
+      if (phase === "develop" && !isPhotoFocused) {
+        // Only drop into the resting spot when not focused. If focused (e.g. the
+        // user swapped the photo with "Change this photo"), the focused effect
+        // below keeps it in place instead of resetting it.
+        animateDevelopEntry(cameraModel.photoExit);
       }
 
       if (phase === "canvas") {
-        gsap.fromTo(
-          ".c-memory-canvas",
-          { autoAlpha: 0, scale: 0.96, y: 24 },
-          { autoAlpha: 1, scale: 1, y: 0, duration: 0.9, ease: "power3.out" },
-        );
+        animateCanvasEntry();
       }
+
+      previousPhaseRef.current = phase;
     },
-    { scope: stageRef, dependencies: [phase, activeIndex] },
+    { scope: stageRef, dependencies: [phase, activeIndex, cameraModel, isPhotoFocused] },
   );
 
   useGSAP(
@@ -62,15 +70,17 @@ export function useRevealAnimations({
         return;
       }
 
-      gsap.to(".c-polaroid-card--is-active", {
-        scale: 1,
-        y: 0,
-        rotate: 0,
-        duration: 1.05,
-        ease: "expo.out",
-      });
+      // A light opacity fade so swapping the photo (reroll) reads as a soft
+      // cross-change rather than a hard cut. Re-runs on activeIndex too, so a
+      // freshly-mounted card lands at the focused position/size, not the rest one.
+      gsap.fromTo(
+        ".c-polaroid-stack",
+        { autoAlpha: 0.15 },
+        { autoAlpha: 1, duration: 0.3, ease: "power2.out" },
+      );
+      animateFocusedPhoto();
     },
-    { scope: stageRef, dependencies: [isPhotoFocused, phase] },
+    { scope: stageRef, dependencies: [isPhotoFocused, phase, activeIndex] },
   );
 
   useGSAP(
@@ -79,11 +89,7 @@ export function useRevealAnimations({
         return;
       }
 
-      gsap.fromTo(
-        ".c-polaroid-card--is-active",
-        { y: 4, rotate: -0.8 },
-        { y: 0, rotate: 0, duration: 0.7, ease: "elastic.out(1, 0.55)" },
-      );
+      animateRevealedPhoto();
     },
     { scope: stageRef, dependencies: [isRevealed, phase] },
   );

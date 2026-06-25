@@ -6,6 +6,7 @@ export type Memory = {
   dateLabel: string;
   location: string;
   caption: string;
+  imageUrl: string;
   tone: MemoryTone;
 };
 
@@ -14,6 +15,7 @@ export const MEMORIES: Memory[] = [
     id: "summer-1998",
     title: "Dimanche chez mamie",
     dateLabel: "Aout 1998",
+    imageUrl: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=82",
     location: "Lille",
     caption: "Une lumiere douce, une nappe trop grande, trois rires flous.",
     tone: "rose",
@@ -22,6 +24,7 @@ export const MEMORIES: Memory[] = [
     id: "road-2004",
     title: "Route de nuit",
     dateLabel: "Juillet 2004",
+    imageUrl: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1200&q=82",
     location: "Cote belge",
     caption: "La mer est hors champ, mais on entend encore les vitres ouvertes.",
     tone: "cyan",
@@ -30,6 +33,7 @@ export const MEMORIES: Memory[] = [
     id: "garden-2011",
     title: "Apres l'orage",
     dateLabel: "Mai 2011",
+    imageUrl: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=82",
     location: "Jardin familial",
     caption: "Papier humide, ciel lave, souvenir presque revenu.",
     tone: "amber",

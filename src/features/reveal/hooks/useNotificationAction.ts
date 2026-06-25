@@ -1,12 +1,11 @@
 import { useCallback } from "react";
-import { useWebHaptics } from "web-haptics/react";
 import type { useNotifications } from "@/hooks/useNotifications";
-import { HAPTIC_EVENTS } from "@/lib/haptics/hapticEvents";
+import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 
 type Notifications = ReturnType<typeof useNotifications>;
 
 export function useNotificationAction(notifications: Notifications) {
-  const { trigger } = useWebHaptics();
+  const triggerHaptic = usePolaroidHaptics();
 
   return useCallback(async () => {
     const granted = await notifications.requestPermission();
@@ -18,7 +17,6 @@ export function useNotificationAction(notifications: Notifications) {
       });
     }
 
-    trigger(granted ? HAPTIC_EVENTS.permissionOk : HAPTIC_EVENTS.permissionKo)
-      ?.catch(() => undefined);
-  }, [notifications, trigger]);
+    triggerHaptic(granted ? "permissionOk" : "permissionKo");
+  }, [notifications, triggerHaptic]);
 }

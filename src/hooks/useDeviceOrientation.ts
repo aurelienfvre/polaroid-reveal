@@ -18,13 +18,20 @@ const EMPTY_TILT: DeviceTilt = {
   gamma: null,
 };
 
-const MIN_SHAKE_ENERGY = 1.6;
-const SHAKE_ENERGY_STEP = 11.5;
-const SENSOR_PROGRESS_STEP = 0.065;
-const SENSOR_PROGRESS_COOLDOWN_MS = 180;
+const MIN_SHAKE_ENERGY = 2.4;
+const SHAKE_ENERGY_STEP = 9;
+const SENSOR_PROGRESS_STEP = 0.1;
+const SENSOR_PROGRESS_COOLDOWN_MS = 150;
+// Bleed off banked energy each event so a hard shake doesn't keep firing
+// progress after the user has stopped (the "it thinks it's still moving" feel).
+const SHAKE_ENERGY_DECAY = 0.8;
 
 export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
-  const [orientation, setOrientation] = useState<DeviceTilt>(EMPTY_TILT);
+  // Orientation lives in a ref, not state: deviceorientation fires ~60×/sec and
+  // storing it in state re-rendered the whole tree every frame while tilting,
+  // which is what made the develop/shake screen stutter. Consumers read the ref
+  // imperatively (rAF) instead.
+  const orientationRef = useRef<DeviceTilt>(EMPTY_TILT);
   const [permissionState, setPermissionState] =
     useState<DeviceOrientationPermissionState>("idle");
   const [isListening, setIsListening] = useState(false);
@@ -45,11 +52,11 @@ export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
     }
 
     const handleOrientation = (event: DeviceOrientationEvent) => {
-      setOrientation({
+      orientationRef.current = {
         alpha: event.alpha,
         beta: event.beta,
         gamma: event.gamma,
-      });
+      };
     };
 
     const handleMotion = (event: DeviceMotionEvent) => {
@@ -63,10 +70,15 @@ export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
       lastGravityAccelerationRef.current = signal.gravityAcceleration;
 
       if (signal.energy < MIN_SHAKE_ENERGY) {
+        // No real motion this frame: let any banked energy settle back down so
+        // the print stops developing/wobbling promptly once the user stops.
+        pendingShakeEnergyRef.current *= SHAKE_ENERGY_DECAY;
         return;
       }
 
-      pendingShakeEnergyRef.current += Math.min(signal.energy, SHAKE_ENERGY_STEP);
+      pendingShakeEnergyRef.current =
+        pendingShakeEnergyRef.current * SHAKE_ENERGY_DECAY +
+        Math.min(signal.energy, SHAKE_ENERGY_STEP);
 
       if (
         pendingShakeEnergyRef.current < SHAKE_ENERGY_STEP ||
@@ -95,5 +107,5 @@ export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
     };
   }, [isListening, onMotionProgress]);
 
-  return { orientation, permissionState, isSupported, requestAccess };
+  return { orientationRef, permissionState, isSupported, requestAccess };
 }

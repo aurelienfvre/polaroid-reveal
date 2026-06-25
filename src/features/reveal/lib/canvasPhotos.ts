@@ -2,6 +2,8 @@ import type { Memory } from "@/features/reveal/data/memories";
 import type { CanvasPhoto } from "@/features/reveal/types/revealTypes";
 
 export const DAILY_REVEAL_LIMIT = 3;
+/** Total number of "Change this photo" rerolls allowed across the session. */
+export const MAX_PHOTO_CHANGES = 3;
 
 const CANVAS_START_POSITIONS = [
   { x: 240, y: 190, rotate: -5 },

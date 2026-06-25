@@ -7,9 +7,9 @@ type Props = {
   isFocused: boolean;
   isRevealed: boolean;
   memory: Memory;
-  motionRef?: RefObject<HTMLDivElement | null>;
+  motionRef?: RefObject<HTMLButtonElement | null>;
   onSelect: () => void;
-  revealProgress: number;
+  showHelper?: boolean;
   tiltStyle?: TiltStyle;
 };
 
@@ -20,39 +20,36 @@ export function PolaroidCard({
   memory,
   motionRef,
   onSelect,
-  revealProgress,
+  showHelper = false,
   tiltStyle,
 }: Props) {
+  const paperStyle = {
+    ...tiltStyle,
+    "--memory-image-url": `url("${memory.imageUrl}")`,
+  } as TiltStyle & { "--memory-image-url": string };
   const cardClassName = [
     "c-polaroid-card",
     `c-polaroid-card--tone-${memory.tone}`,
     isActive ? "c-polaroid-card--is-active" : "c-polaroid-card--is-parked",
-    isActive && revealProgress > 0 ? "c-polaroid-card--is-developing" : "",
     isFocused ? "c-polaroid-card--is-focused" : "",
     isActive && isRevealed ? "c-polaroid-card--is-revealed" : "",
   ].filter(Boolean).join(" ");
 
   return (
-    <article className={cardClassName} onClick={onSelect}>
-      <div className="c-polaroid-card__paper" ref={motionRef} style={tiltStyle}>
+    <article className={cardClassName}>
+      <button
+        aria-label="Prendre le Polaroid"
+        className="c-polaroid-card__paper"
+        onClick={onSelect}
+        ref={motionRef}
+        style={paperStyle}
+        type="button"
+      >
         <div className="c-polaroid-card__image">
-          <span className="c-polaroid-card__light-leak" />
-          <span className="c-polaroid-card__grain" />
+          <span className="c-polaroid-card__photo" />
+          {showHelper && <span className="c-polaroid-card__helper" aria-hidden="true" />}
         </div>
-        <div className="c-polaroid-card__body">
-          <p className="c-polaroid-card__date">
-            {memory.dateLabel} - {memory.location}
-          </p>
-          <h2 className="c-polaroid-card__title">{memory.title}</h2>
-          <p className="c-polaroid-card__caption">
-            {isActive && isRevealed
-              ? memory.caption
-              : revealProgress > 0
-                ? "Continue de remuer franchement, l'image remonte doucement."
-                : "Clique la photo, puis remue-la pour lancer le developpement."}
-          </p>
-        </div>
-      </div>
+      </button>
     </article>
   );
 }

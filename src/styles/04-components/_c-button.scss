@@ -42,3 +42,115 @@
 .c-button--ghost {
   background: transparent;
 }
+
+.c-polaroid-button {
+  position: relative;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: auto;
+  min-height: auto;
+  overflow: visible;
+  border: 0;
+  padding: 16px;
+  color: var(--grey-50);
+  background: var(--grey-900);
+  font-family: var(--font-family-commit), monospace;
+  font-size: 16px;
+  line-height: 1;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+
+.c-polaroid-button::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 2;
+  width: 50%;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--red-500) 0 20%,
+      var(--orange-500) 20% 40%,
+      var(--yellow-500) 40% 60%,
+      var(--green-500) 60% 80%,
+      var(--blue-500) 80% 100%
+    );
+  content: "";
+  transform: translateX(-50%);
+}
+
+.c-polaroid-button:focus-visible {
+  outline: 3px solid var(--red-500);
+  outline-offset: 7px;
+}
+
+.c-polaroid-button:disabled {
+  cursor: default;
+}
+
+.c-polaroid-button__stripes {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 1;
+  display: flex;
+  width: 50%;
+  height: 100%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.c-polaroid-button__stripe {
+  flex: 1 1 0;
+  height: 100%;
+  transform: scaleY(0);
+  transform-origin: 50% 0%;
+  transition: transform 360ms cubic-bezier(0.76, 0, 0.24, 1);
+  will-change: transform;
+}
+
+.c-polaroid-button__stripe--red {
+  background: var(--red-500);
+}
+
+.c-polaroid-button__stripe--orange {
+  background: var(--orange-500);
+}
+
+.c-polaroid-button__stripe--yellow {
+  background: var(--yellow-500);
+}
+
+.c-polaroid-button__stripe--green {
+  background: var(--green-500);
+}
+
+.c-polaroid-button__stripe--blue {
+  background: var(--blue-500);
+}
+
+.c-polaroid-button--is-pressed .c-polaroid-button__stripe {
+  transform: scaleY(1);
+  transition-duration: 390ms;
+  transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.c-polaroid-button__label {
+  position: relative;
+  z-index: 3;
+  white-space: nowrap;
+}
+
+@media (min-width: 720px) {
+  .c-polaroid-button {
+    display: flex;
+    width: 130px;
+    padding: 24px;
+    font-size: 12px;
+  }
+}

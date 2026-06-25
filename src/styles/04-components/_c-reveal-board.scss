@@ -31,24 +31,20 @@
 
 .p-home__experience--is-camera .c-reveal-board,
 .p-home__experience--is-develop .c-reveal-board {
-  min-height: calc(100dvh - clamp(2rem, 8vw, 6rem));
-  overflow: hidden;
-  border-color: rgb(255 253 247 / 12%);
-  background:
-    radial-gradient(circle at 50% 42%, rgb(255 225 91 / 18%), transparent 26%),
-    radial-gradient(circle at 50% 58%, rgb(240 106 138 / 12%), transparent 34%),
-    linear-gradient(145deg, #171314, #070606 74%);
-  box-shadow:
-    inset 0 0 0 1px rgb(255 253 247 / 8%),
-    0 2rem 6rem rgb(36 31 33 / 26%);
+  height: 100dvh;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .p-home__experience--is-camera .c-reveal-board::after,
 .p-home__experience--is-develop .c-reveal-board::after {
   background-image:
-    radial-gradient(circle at 1px 1px, rgb(255 253 247 / 9%) 1px, transparent 0);
-  background-size: 18px 18px;
-  opacity: 0.35;
+    radial-gradient(circle at 1px 1px, rgb(21 21 21 / 8%) 1px, transparent 0);
+  background-size: 22px 22px;
+  opacity: 0.28;
 }
 
 @media (max-width: 720px) {

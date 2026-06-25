@@ -1,0 +1,326 @@
+.c-perso {
+  --perso-toolbar-h: clamp(96px, 14dvh, 128px);
+  --perso-filter-stage-lift: clamp(48px, 7dvh, 70px);
+
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 100%;
+  height: 100dvh;
+  background: var(--grey-500);
+  overflow: hidden;
+  user-select: none;
+}
+
+.c-perso__title {
+  padding: clamp(1rem, 3dvh, 2rem) var(--space-5) 0;
+  color: var(--color-ink-muted);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+// Stage holding the fanned stack of prints.
+.c-perso__stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  touch-action: pan-y;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: grab;
+}
+
+.c-perso--is-filter .c-perso__stage {
+  transform: translateY(calc(var(--perso-filter-stage-lift) * -1));
+}
+
+.c-perso__stage:active {
+  cursor: grabbing;
+}
+
+.c-perso-card {
+  grid-area: 1 / 1;
+  width: min(64vw, 38dvh);
+  transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1), opacity 240ms ease;
+  will-change: transform;
+}
+
+.c-perso-card--is-active {
+  filter: drop-shadow(0 1.2rem 2.4rem rgb(21 21 21 / 22%));
+}
+
+.c-perso-card__paper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  aspect-ratio: 113 / 138;
+  padding: 6% 6% 0;
+  background: var(--grey-50);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 16%);
+}
+
+.c-perso-card__image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: var(--grey-900) center / cover no-repeat;
+}
+
+.c-perso-card__grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.c-perso-card__caption {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-height: 1.5em;
+  padding: 4% 2%;
+  color: var(--grey-900);
+  font-size: clamp(1rem, 3.4dvh, 1.6rem);
+  line-height: 1.1;
+  text-align: center;
+  word-break: break-word;
+}
+
+// Contextual editing panel above the toolbar.
+.c-perso__panel {
+  position: absolute;
+  right: 0;
+  bottom: var(--perso-toolbar-h);
+  left: 0;
+  z-index: 12;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-3) 0 var(--space-4);
+  background: var(--grey-900);
+  color: var(--grey-50);
+  pointer-events: auto;
+}
+
+.c-perso__panel--filter {
+  gap: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.c-perso__panel-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 8px;
+  background: rgb(21 21 21 / 70%);
+  color: var(--grey-50);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.c-perso__panel--filter .c-perso__panel-label {
+  position: absolute;
+  bottom: calc(100% + var(--space-5));
+  left: 50%;
+  padding: 8px;
+  font-size: 24px;
+  transform: translateX(-50%);
+}
+
+.c-perso__filters {
+  position: relative;
+  align-self: stretch;
+  width: 100%;
+  height: clamp(82px, 10dvh, 98px);
+  background: var(--grey-900);
+  overflow: hidden;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  touch-action: pan-x;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.c-perso__filters::-webkit-scrollbar {
+  display: none;
+}
+
+.c-perso__filter-track {
+  position: absolute;
+  top: clamp(14px, 2dvh, 18px);
+  left: 50%;
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  width: max-content;
+  transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.c-perso__filter {
+  position: relative;
+  flex: 0 0 54px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  opacity: 0.62;
+  transition: opacity 180ms ease;
+}
+
+.c-perso__filter.is-selected {
+  opacity: 1;
+}
+
+.c-perso__filter-thumb {
+  display: block;
+  width: 54px;
+  height: 54px;
+  background: var(--grey-900) center / cover no-repeat;
+}
+
+// Square outline (vertical edges cut in the middle) shown 4px around the
+// selected thumbnail. Uses currentColor so it can later take a picked colour.
+.c-perso__filter-frame {
+  position: absolute;
+  top: calc(clamp(14px, 2dvh, 18px) - 5px);
+  left: 50%;
+  z-index: 3;
+  display: block;
+  width: 64px;
+  height: 64px;
+  color: var(--grey-50);
+  opacity: 1;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.c-perso__text-input {
+  width: min(90%, 22rem);
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--color-line);
+  background: var(--grey-50);
+  color: var(--grey-900);
+  text-align: center;
+}
+
+.c-perso__fonts,
+.c-perso__panel--texture {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.c-perso__font,
+.c-perso__texture {
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--color-line);
+  background: var(--grey-50);
+  color: var(--grey-900);
+  cursor: pointer;
+}
+
+.c-perso__font.is-selected,
+.c-perso__texture.is-selected {
+  border-color: var(--grey-900);
+  background: var(--grey-900);
+  color: var(--grey-50);
+}
+
+// Bottom toolbar.
+.c-perso__toolbar {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(var(--space-2), 3vw, var(--space-4));
+  height: var(--perso-toolbar-h);
+  padding: var(--space-4) clamp(var(--space-3), 4vw, var(--space-5)) max(env(safe-area-inset-bottom), var(--space-4));
+  background: var(--grey-900);
+}
+
+.c-perso__tools {
+  display: flex;
+  flex: 1 1 auto;
+  gap: clamp(var(--space-3), 6vw, var(--space-6));
+  min-width: 0;
+}
+
+.c-perso__tool {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--grey-50);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 160ms ease;
+}
+
+.c-perso__tool svg {
+  width: 32px;
+  height: 32px;
+}
+
+.c-perso__tool.is-active {
+  opacity: 1;
+}
+
+.c-perso__separator {
+  align-self: stretch;
+  width: 1px;
+  margin: 0.4rem 0;
+  background: rgb(255 255 255 / 22%);
+}
+
+.c-perso__validate {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--grey-50);
+  font-family: var(--font-family-commit), monospace;
+  font-size: clamp(10px, 2.8vw, 12px);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.c-perso__validate svg {
+  width: 16px;
+  height: 16px;
+}
+
+// Rainbow stripe sitting on the toolbar's top edge, above GO TO BOARD.
+.c-perso__toolbar-stripe {
+  position: absolute;
+  top: 0;
+  right: 4.5rem;
+  z-index: 2;
+  width: 120px;
+  height: 3px;
+  background:
+    linear-gradient(
+      90deg,
+      var(--red-500) 0 20%,
+      var(--orange-500) 20% 40%,
+      var(--yellow-500) 40% 60%,
+      var(--green-500) 60% 80%,
+      var(--blue-500) 80% 100%
+    );
+}

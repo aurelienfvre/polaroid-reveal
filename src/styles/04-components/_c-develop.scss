@@ -1,0 +1,163 @@
+// Real overlay that shares the board's grid cell with the camera (above it),
+// rather than `display: contents`, which let the print fall into a new grid row
+// below the full-height camera and off-screen.
+.c-develop {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  grid-area: 1 / 1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.c-develop > * {
+  pointer-events: auto;
+}
+
+// Dim everything behind the focused print so it (and its hint/controls) reads
+// clearly in the foreground.
+.c-develop__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  background: rgb(21 21 21 / 40%);
+  pointer-events: none;
+  animation: c-develop-fade 240ms ease-out both;
+}
+
+.c-develop .c-polaroid-stack {
+  // Centred in the develop overlay; sized by viewport height as well as width
+  // so the camera above it, the print, and the controls below all fit on one
+  // screen.
+  grid-area: 1 / 1;
+  z-index: 6;
+  width: min(46vw, 24dvh);
+  opacity: 1;
+}
+
+// Handwritten cue shown while the print is focused but not yet revealed.
+.c-develop__hint {
+  position: fixed;
+  top: 24vh;
+  right: 0;
+  left: 0;
+  z-index: 7;
+  margin: 0;
+  color: var(--grey-50);
+  font-family: var(--font-family-bricolage, "Bricolage Grotesque");
+  font-size: 24px;
+  line-height: 1;
+  text-align: center;
+  text-shadow: 0 2px 12px rgb(21 21 21 / 45%);
+  pointer-events: none;
+  animation: c-develop-fade 320ms ease-out both;
+}
+
+// "skip" the shake to reveal straight away.
+.c-develop__skip {
+  position: fixed;
+  bottom: max(env(safe-area-inset-bottom), 5vh);
+  left: 50%;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--grey-50);
+  font-family: var(--font-body);
+  font-size: 16px;
+  cursor: pointer;
+  transform: translateX(-50%);
+  animation: c-develop-fade 320ms ease-out both;
+}
+
+.c-develop__skip svg {
+  width: 24px;
+  height: 24px;
+}
+
+// Native share trigger, top-right.
+.c-develop__share {
+  position: fixed;
+  top: max(env(safe-area-inset-top), 3vh);
+  right: 6vw;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--grey-50);
+  cursor: pointer;
+  animation: c-develop-fade 320ms ease-out both;
+}
+
+.c-develop__share svg {
+  width: 48px;
+  height: 48px;
+}
+
+.c-develop__share:focus-visible {
+  outline: 3px solid var(--grey-50);
+  outline-offset: 4px;
+}
+
+// Bottom action cluster: change link + primary button.
+.c-develop__actions {
+  position: fixed;
+  right: 0;
+  bottom: max(env(safe-area-inset-bottom), 5vh);
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  animation: c-develop-fade 320ms ease-out both;
+}
+
+.c-develop__change {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--grey-50);
+  font-family: var(--font-body);
+  font-size: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 180ms ease;
+}
+
+.c-develop__change svg {
+  width: 24px;
+  height: 24px;
+}
+
+.c-develop__change:hover:not(:disabled) {
+  opacity: 0.78;
+}
+
+.c-develop__change:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.c-develop__change:focus-visible {
+  outline: 3px solid var(--grey-50);
+  outline-offset: 4px;
+}
+
+@keyframes c-develop-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

@@ -1,17 +1,15 @@
-import { useWebHaptics } from "web-haptics/react";
 import type { Dispatch, SetStateAction } from "react";
 import { MEMORIES } from "@/features/reveal/data/memories";
 import type { Memory } from "@/features/reveal/data/memories";
-import {
-  DAILY_REVEAL_LIMIT,
-  getCanvasPhoto,
-} from "@/features/reveal/lib/canvasPhotos";
+import { getCanvasPhoto } from "@/features/reveal/lib/canvasPhotos";
+import { exportPolaroidImage } from "@/features/reveal/lib/exportPolaroidImage";
 import type { DeviceProfile } from "@/hooks/useDeviceProfile";
 import type { CanvasPhoto, ExperiencePhase } from "@/features/reveal/types/revealTypes";
-import { HAPTIC_EVENTS } from "@/lib/haptics/hapticEvents";
+import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 
 type Params = {
   activeMemory: Memory;
+  canChangePhoto: boolean;
   deviceProfile: DeviceProfile;
   getNextCanvasZIndex: () => number;
   isDailyComplete: boolean;
@@ -23,13 +21,15 @@ type Params = {
   resetDevelopmentState: () => void;
   resetPointerTilt: () => void;
   setActiveIndex: Dispatch<SetStateAction<number>>;
+  setChangeCount: Dispatch<SetStateAction<number>>;
   setPhase: Dispatch<SetStateAction<ExperiencePhase>>;
   setPhotoFocused: Dispatch<SetStateAction<boolean>>;
   setPlacedPhotos: Dispatch<SetStateAction<CanvasPhoto[]>>;
+  setShootNonce: Dispatch<SetStateAction<number>>;
 };
 
 export function usePhotoFlowActions(params: Params) {
-  const { trigger } = useWebHaptics();
+  const triggerHaptic = usePolaroidHaptics();
 
   const handleCameraShoot = () => {
     if (params.isDailyComplete) {
@@ -40,16 +40,12 @@ export function usePhotoFlowActions(params: Params) {
     params.resetDevelopmentState();
     params.setPhotoFocused(false);
     params.setPhase("develop");
-    trigger(HAPTIC_EVENTS.snap, { intensity: 0.44 })?.catch(() => undefined);
   };
 
   const handlePolaroidSelect = async () => {
-    if (params.phase !== "develop") {
-      return;
-    }
-
-    if (params.isRevealed) {
-      handlePlaceRevealedPhoto();
+    // Tapping only focuses the print so it can be shaken. Once revealed, the
+    // print stays put and the on-screen controls drive what happens next.
+    if (params.phase !== "develop" || params.isRevealed) {
       return;
     }
 
@@ -58,39 +54,93 @@ export function usePhotoFlowActions(params: Params) {
     }
 
     params.setPhotoFocused(true);
-    trigger(HAPTIC_EVENTS.snap, { intensity: 0.32 })?.catch(() => undefined);
+    triggerHaptic("snap", { intensity: 0.32 });
   };
 
-  const handlePlaceRevealedPhoto = () => {
+  const placeCurrentPhoto = () => {
+    if (params.placedPhotos.some((photo) => photo.id === params.activeMemory.id)) {
+      return;
+    }
+
+    const nextZIndex = params.getNextCanvasZIndex();
+    params.setPlacedPhotos((photos) => [
+      ...photos,
+      getCanvasPhoto(params.activeMemory, photos.length, nextZIndex),
+    ]);
+  };
+
+  // Swap the developed print for another random memory without leaving the
+  // develop view — it stays revealed, just shows a different shot.
+  const handleChangePhoto = () => {
+    if (!params.isRevealed || !params.canChangePhoto) {
+      return;
+    }
+
+    params.setChangeCount((count) => count + 1);
+    params.setActiveIndex((currentIndex) => pickAnotherIndex(currentIndex));
+    triggerHaptic("snap", { intensity: 0.3 });
+  };
+
+  // Keep the developed print and send a fresh one out of the camera.
+  const handleTakeNewPhoto = () => {
     if (!params.isRevealed) {
       return;
     }
 
-    const exists = params.placedPhotos.some((photo) => photo.id === params.activeMemory.id);
-    const nextCount = exists ? params.placedPhotos.length : params.placedPhotos.length + 1;
-
-    if (!exists) {
-      const nextZIndex = params.getNextCanvasZIndex();
-
-      params.setPlacedPhotos((photos) => [
-        ...photos,
-        getCanvasPhoto(params.activeMemory, photos.length, nextZIndex),
-      ]);
-    }
-
+    placeCurrentPhoto();
     params.resetPointerTilt();
     params.resetDevelopmentState();
     params.setPhotoFocused(false);
-    trigger(HAPTIC_EVENTS.snap, { intensity: 0.5 })?.catch(() => undefined);
-    params.setPhase(nextCount >= DAILY_REVEAL_LIMIT ? "canvas" : "camera");
-    if (nextCount < DAILY_REVEAL_LIMIT) {
-      params.setActiveIndex((currentIndex) => (currentIndex + 1) % MEMORIES.length);
+    params.setActiveIndex((currentIndex) => pickAnotherIndex(currentIndex));
+    triggerHaptic("snap", { intensity: 0.5 });
+    params.setPhase("camera");
+    // Re-fire the eject straight away so the user doesn't have to tap again.
+    params.setShootNonce((nonce) => nonce + 1);
+  };
+
+  // Finish the daily set and move on to personalising the prints.
+  const handleShowMyPhotos = () => {
+    if (!params.isRevealed) {
+      return;
+    }
+
+    placeCurrentPhoto();
+    params.resetPointerTilt();
+    params.resetDevelopmentState();
+    params.setPhotoFocused(false);
+    triggerHaptic("snap", { intensity: 0.5 });
+    params.setPhase("personalize");
+  };
+
+  const handleValidatePersonalization = () => {
+    triggerHaptic("snap", { intensity: 0.5 });
+    params.setPhase("canvas");
+  };
+
+  const handleShare = async () => {
+    try {
+      await exportPolaroidImage(params.activeMemory);
+    } catch {
+      // Export can fail if a remote image blocks canvas access.
     }
   };
 
   return {
     handleCameraShoot,
-    handlePlaceRevealedPhoto,
+    handleChangePhoto,
     handlePolaroidSelect,
+    handleShare,
+    handleShowMyPhotos,
+    handleTakeNewPhoto,
+    handleValidatePersonalization,
   };
+}
+
+function pickAnotherIndex(currentIndex: number) {
+  if (MEMORIES.length <= 1) {
+    return currentIndex;
+  }
+
+  const offset = 1 + Math.floor(Math.random() * (MEMORIES.length - 1));
+  return (currentIndex + offset) % MEMORIES.length;
 }

@@ -3,6 +3,7 @@ import { useCanvasDrag } from "@/features/reveal/hooks/useCanvasDrag";
 import { useDevelopmentController } from "@/features/reveal/hooks/useDevelopmentController";
 import { usePhotoFlowActions } from "@/features/reveal/hooks/usePhotoFlowActions";
 import { usePolaroidTiltEffect } from "@/features/reveal/hooks/usePolaroidTiltEffect";
+import { useRandomPolaroidCameraModel } from "@/features/reveal/hooks/useRandomPolaroidCameraModel";
 import { useRevealAnimations } from "@/features/reveal/hooks/useRevealAnimations";
 import { useRevealFlowState } from "@/features/reveal/hooks/useRevealFlowState";
 import { getTiltStyle } from "@/features/reveal/lib/revealStyles";
@@ -12,9 +13,10 @@ import { usePointerTilt } from "@/hooks/usePointerTilt";
 
 export function useRevealExperienceModel(
   stageRef: RefObject<HTMLDivElement | null>,
-  polaroidMotionRef: RefObject<HTMLDivElement | null>,
+  polaroidMotionRef: RefObject<HTMLElement | null>,
 ) {
   const flow = useRevealFlowState();
+  const cameraModel = useRandomPolaroidCameraModel();
   const deviceProfile = useDeviceProfile();
   const development = useDevelopmentController({
     canDevelopRef: flow.isPhotoFocusedRef,
@@ -43,14 +45,17 @@ export function useRevealExperienceModel(
   });
   useRevealAnimations({
     activeIndex: flow.activeIndex,
+    cameraModel,
     isPhotoFocused: flow.isPhotoFocused,
     isRevealed: development.isRevealed,
     phase: flow.phase,
     stageRef,
   });
   usePolaroidTiltEffect({
+    isFocused: flow.isPhotoFocused,
+    isRevealed: development.isRevealed,
     motionRef: polaroidMotionRef,
-    orientation: motion.orientation,
+    orientationRef: motion.orientationRef,
     permissionState: motion.permissionState,
     phase: flow.phase,
   });
@@ -60,15 +65,27 @@ export function useRevealExperienceModel(
     stage: {
       ...drag,
       activeIndex: flow.activeIndex,
+      cameraModel,
+      canChangePhoto: flow.canChangePhoto,
+      changesRemaining: flow.changesRemaining,
+      customizations: flow.photoCustomizations,
+      isLastTirage: flow.isLastTirage,
       isPhotoFocused: flow.isPhotoFocused,
       isRevealed: development.isRevealed,
       nextPhotoNumber: flow.nextPhotoNumber,
+      onChangePhoto: photo.handleChangePhoto,
       onPolaroidSelect: photo.handlePolaroidSelect,
+      onShare: photo.handleShare,
+      onCustomizationsChange: flow.setPhotoCustomizations,
       onShoot: photo.handleCameraShoot,
+      onShowMyPhotos: photo.handleShowMyPhotos,
+      onSkipReveal: development.revealNow,
+      onTakeNewPhoto: photo.handleTakeNewPhoto,
+      onValidatePersonalization: photo.handleValidatePersonalization,
       phase: flow.phase,
       photos: flow.placedPhotos,
-      revealProgress: development.revealProgress,
-      tiltStyle: getTiltStyle(development.revealProgress),
+      shootNonce: flow.shootNonce,
+      tiltStyle: getTiltStyle(development.isRevealed ? 1 : 0),
     },
   };
 }

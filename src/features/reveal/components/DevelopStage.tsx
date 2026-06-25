@@ -1,47 +1,81 @@
 import type { RefObject } from "react";
 import { MEMORIES } from "@/features/reveal/data/memories";
+import { DevelopControls } from "@/features/reveal/components/DevelopControls";
+import { SkipIcon } from "@/features/reveal/components/PersonalizeIcons";
 import { PolaroidCard } from "@/features/reveal/components/PolaroidCard";
 import type { TiltStyle } from "@/features/reveal/types/revealTypes";
 
 type Props = {
   activeIndex: number;
+  changesRemaining: number;
+  isLastTirage: boolean;
   isPhotoFocused: boolean;
   isRevealed: boolean;
-  motionRef: RefObject<HTMLDivElement | null>;
+  motionRef: RefObject<HTMLButtonElement | null>;
+  onChangePhoto: () => void;
   onPolaroidSelect: () => void;
-  revealProgress: number;
+  onShare: () => void;
+  onShowMyPhotos: () => void;
+  onSkipReveal: () => void;
+  onTakeNewPhoto: () => void;
   tiltStyle: TiltStyle;
 };
 
 export function DevelopStage({
   activeIndex,
+  changesRemaining,
+  isLastTirage,
   isPhotoFocused,
   isRevealed,
   motionRef,
+  onChangePhoto,
   onPolaroidSelect,
-  revealProgress,
+  onShare,
+  onShowMyPhotos,
+  onSkipReveal,
+  onTakeNewPhoto,
   tiltStyle,
 }: Props) {
-  const stackClassName = [
-    "c-polaroid-stack",
-    isPhotoFocused ? "c-polaroid-stack--is-focused" : "",
-  ].filter(Boolean).join(" ");
+  const activeMemory = MEMORIES[activeIndex];
 
   return (
-    <div className={stackClassName} aria-live="polite">
-      {MEMORIES.map((memory, index) => (
+    <div className="c-develop" aria-live="polite">
+      {isPhotoFocused && <div className="c-develop__backdrop" aria-hidden="true" />}
+
+      <div className="c-polaroid-stack">
         <PolaroidCard
-          isActive={index === activeIndex}
-          isFocused={index === activeIndex && isPhotoFocused}
+          isActive
+          isFocused={isPhotoFocused}
           isRevealed={isRevealed}
-          key={memory.id}
-          memory={memory}
-          motionRef={index === activeIndex ? motionRef : undefined}
+          key={activeMemory.id}
+          memory={activeMemory}
+          motionRef={motionRef}
           onSelect={onPolaroidSelect}
-          revealProgress={revealProgress}
-          tiltStyle={index === activeIndex ? tiltStyle : undefined}
+          showHelper={!isPhotoFocused && !isRevealed}
+          tiltStyle={tiltStyle}
         />
-      ))}
+      </div>
+
+      {isPhotoFocused && !isRevealed && (
+        <>
+          <p className="c-develop__hint">Shake to reveal</p>
+          <button className="c-develop__skip" type="button" onClick={onSkipReveal}>
+            skip
+            <SkipIcon />
+          </button>
+        </>
+      )}
+
+      {isPhotoFocused && isRevealed && (
+        <DevelopControls
+          changesRemaining={changesRemaining}
+          isLastTirage={isLastTirage}
+          onChangePhoto={onChangePhoto}
+          onShare={onShare}
+          onShowMyPhotos={onShowMyPhotos}
+          onTakeNewPhoto={onTakeNewPhoto}
+        />
+      )}
     </div>
   );
 }

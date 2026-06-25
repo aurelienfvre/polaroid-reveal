@@ -23,9 +23,14 @@ export function usePointerTilt(
 
     const getMotionTarget = () => motionTargetRef?.current ?? target;
 
-    const handlePointerMove = (event: PointerEvent) => {
-      if (event.pointerType === "touch") return;
+    // Coalesce pointer moves into a single per-frame update — desktop fires
+    // pointermove far more often than 60fps, and writing the tilt CSS vars +
+    // running the develop impulse on every one is what makes the shake/skip
+    // phase feel heavy.
+    let rafId = 0;
+    let latestEvent: PointerEvent | null = null;
 
+    const processMove = (event: PointerEvent) => {
       const motionTarget = getMotionTarget();
       const bounds = target.getBoundingClientRect();
 
@@ -63,6 +68,20 @@ export function usePointerTilt(
       });
     };
 
+    const handlePointerMove = (event: PointerEvent) => {
+      if (event.pointerType === "touch") return;
+
+      latestEvent = event;
+      if (rafId) return;
+
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        if (latestEvent) {
+          processMove(latestEvent);
+        }
+      });
+    };
+
     const resetPointer = () => {
       const motionTarget = getMotionTarget();
 
@@ -79,6 +98,9 @@ export function usePointerTilt(
     window.addEventListener("blur", resetPointer);
 
     return () => {
+      if (rafId) {
+        window.cancelAnimationFrame(rafId);
+      }
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerleave", resetPointer);
       window.removeEventListener("blur", resetPointer);
