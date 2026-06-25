@@ -191,6 +191,7 @@ export function PersonalizeStage({
       )}
 
       <div className="c-perso__toolbar">
+        <span className="c-perso__toolbar-stripe" aria-hidden="true" />
         <div className="c-perso__tools">
           <PersoTool active={perso.activeTab === "filter"} label="Filter" onClick={() => perso.toggleTab("filter")}>
             <FilterIcon />
@@ -204,7 +205,6 @@ export function PersonalizeStage({
         </div>
         <span className="c-perso__separator" aria-hidden="true" />
         <button className="c-perso__validate" type="button" onClick={onValidate}>
-          <span className="c-perso__validate-stripe" aria-hidden="true" />
           <CheckIcon />
           GO TO BOARD
         </button>
