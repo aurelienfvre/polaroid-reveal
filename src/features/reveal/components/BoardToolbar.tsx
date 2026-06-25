@@ -1,4 +1,4 @@
-import { useRef, useState, type PointerEvent } from "react";
+import { useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import {
   BackgroundIcon,
   PlusIcon,
@@ -22,14 +22,18 @@ type Props = {
   backgroundId: string;
   isStamping: boolean;
   textFont: PhotoFontId;
+  penStrokeIndex: number;
+  penOpacity: number;
   onToolToggle: (tool: BoardTool) => void;
   onColorChange: (color: string) => void;
   onBackgroundChange: (id: string) => void;
   onAddTape: (src: string, scale: number) => void;
   onTextFontChange: (id: PhotoFontId) => void;
+  onPenStrokeChange: (index: number) => void;
+  onPenOpacityChange: (value: number) => void;
   onAddShape: (shape: BoardShape) => void;
-  onAddSticker: (src: string) => void;
   onClearStamp: () => void;
+  onAddSticker: (src: string) => void;
 };
 
 export function BoardToolbar({
@@ -38,19 +42,20 @@ export function BoardToolbar({
   backgroundId,
   isStamping,
   textFont,
+  penStrokeIndex,
+  penOpacity,
   onToolToggle,
   onColorChange,
   onBackgroundChange,
   onAddTape,
   onTextFontChange,
+  onPenStrokeChange,
+  onPenOpacityChange,
   onAddShape,
-  onAddSticker,
   onClearStamp,
+  onAddSticker,
 }: Props) {
-  // Sub-view of the "+" popover: the menu itself, or a drilled-in picker.
   const [addView, setAddView] = useState<"menu" | "background" | "shape">("menu");
-  const [penStroke, setPenStroke] = useState(1);
-  const [penOpacity, setPenOpacity] = useState(100);
   // Scotch texture is a purely visual selection (doesn't change what's placed).
   const [scotchTexture, setScotchTexture] = useState(0);
 
@@ -146,19 +151,19 @@ export function BoardToolbar({
                 type="button"
                 className={[
                   "c-board-toolbar__stroke",
-                  penStroke === index ? "is-active" : "",
+                  penStrokeIndex === index ? "is-active" : "",
                 ].filter(Boolean).join(" ")}
                 aria-label={`Epaisseur ${stroke.strokeWidth}`}
-                onClick={() => setPenStroke(index)}
+                onClick={() => onPenStrokeChange(index)}
               >
                 <svg width={stroke.w} height={stroke.h} viewBox={stroke.viewBox} fill="none">
                   <path d={stroke.d} stroke={activeColor} strokeWidth={stroke.strokeWidth} />
                 </svg>
-                {penStroke === index && <SelectFrameIcon />}
+                {penStrokeIndex === index && <SelectFrameIcon />}
               </button>
             ))}
           </div>
-          <PenOpacitySlider value={penOpacity} onChange={setPenOpacity} />
+          <PenOpacitySlider value={penOpacity} color={activeColor} onChange={onPenOpacityChange} />
         </div>
       )}
 
@@ -172,10 +177,12 @@ export function BoardToolbar({
                 "c-board-toolbar__color",
                 activeColor === color ? "is-active" : "",
               ].filter(Boolean).join(" ")}
-              style={{ background: color }}
               aria-label={color}
               onClick={() => onColorChange(color)}
-            />
+            >
+              <span className="c-board-toolbar__color-swatch" style={{ background: color }} />
+              <SelectFrameIcon />
+            </button>
           ))}
         </div>
       )}
@@ -201,17 +208,17 @@ export function BoardToolbar({
 
           {addView === "background" && (
             <div className="c-board-toolbar__bg-grid">
-              {BOARD_BACKGROUNDS.map((bg) => (
+              {BOARD_BACKGROUNDS.map((background) => (
                 <button
-                  key={bg.id}
+                  key={background.id}
                   type="button"
                   className={[
                     "c-board-toolbar__bg",
-                    backgroundId === bg.id ? "is-active" : "",
+                    backgroundId === background.id ? "is-active" : "",
                   ].filter(Boolean).join(" ")}
-                  style={{ background: bg.css }}
-                  aria-label={bg.label}
-                  onClick={() => onBackgroundChange(bg.id)}
+                  style={{ background: background.css }}
+                  aria-label={background.label}
+                  onClick={() => onBackgroundChange(background.id)}
                 />
               ))}
             </div>
@@ -402,12 +409,14 @@ function OpacityHandleIcon() {
   );
 }
 
-/** Custom opacity slider: checkerboard→white track + select-frame handle. */
+/** Custom opacity slider: checkerboard→colour track + select-frame handle. */
 function PenOpacitySlider({
   value,
+  color,
   onChange,
 }: {
   value: number;
+  color: string;
   onChange: (value: number) => void;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -443,11 +452,13 @@ function PenOpacitySlider({
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
     >
-      <span className="c-board-toolbar__opacity-track" />
+      <span
+        className="c-board-toolbar__opacity-track"
+        style={{ "--opacity-color": color } as CSSProperties}
+      />
       <span className="c-board-toolbar__opacity-handle" style={{ left: `${value}%` }}>
         <OpacityHandleIcon />
       </span>
     </div>
   );
 }
-

@@ -76,6 +76,24 @@
   will-change: transform;
 }
 
+.c-placement-board__surface.is-pen .c-board-item {
+  pointer-events: none;
+}
+
+.c-placement-board__viewport.is-drawing {
+  cursor: crosshair;
+}
+
+.c-placement-board__ink {
+  position: absolute;
+  inset: 0;
+  z-index: 1000;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
 /* --- Board items -------------------------------------------------------- */
 .c-board-item {
   position: absolute;
@@ -206,19 +224,6 @@
   background: var(--grey-50);
   transform-origin: center top;
   cursor: grab;
-}
-
-.c-board-item__resize {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: 2px solid var(--blue-500);
-  background: var(--grey-50);
-  transform-origin: right bottom;
-  cursor: nwse-resize;
 }
 
 /* --- Tray of prints "in hand" ------------------------------------------ */
@@ -439,6 +444,7 @@
   gap: 18px;
   padding: 16px 24px;
   background: rgb(0 0 0 / 80%);
+  box-sizing: border-box;
   overflow-x: auto;
 }
 
@@ -446,7 +452,7 @@
 .c-board-toolbar__panel--scotch {
   justify-content: space-between;
   align-items: flex-start;
-  padding: 16px 24px 8px 24px;
+  padding: 16px 24px 8px;
   overflow: visible;
 }
 
@@ -536,7 +542,7 @@
 .c-board-toolbar__panel--fonts {
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px 8px 24px;
+  padding: 16px 24px 8px;
 }
 
 .c-board-toolbar__font {
@@ -563,7 +569,7 @@
   width: 390px;
   max-width: calc(100vw - 48px);
   margin-inline: auto;
-  padding: 16px 24px 8px 24px;
+  padding: 16px 24px 8px;
 }
 
 .c-board-toolbar__strokes {
@@ -597,7 +603,7 @@
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(to right, rgb(255 255 255 / 0%), var(--grey-50)),
+    linear-gradient(to right, rgb(255 255 255 / 0%), var(--opacity-color, var(--grey-50))),
     repeating-conic-gradient(#bfbfbf 0% 25%, #ffffff 0% 50%) 0 0 / 16px 16px;
 }
 
@@ -608,7 +614,7 @@
   place-items: center;
   width: 28px;
   height: 36px;
-  background: var(--grey-50);
+  background: transparent;
   transform: translate(-50%, -50%);
   pointer-events: none;
 }
@@ -616,25 +622,43 @@
 /* --- Colour palette ----------------------------------------------------- */
 .c-board-toolbar__palette {
   position: absolute;
-  right: 24px;
-  bottom: 92px;
+  right: 56px;
+  bottom: 86px;
   z-index: 51;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;  background: rgb(0 0 0 / 82%);
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  max-height: calc(100dvh - 116px);
+  padding: 8px;
+  background: rgb(0 0 0 / 82%);
+  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .c-board-toolbar__color {
-  width: 34px;
-  height: 34px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
   padding: 0;
-  border: 2px solid var(--grey-50);
+  border: 0;
+  background: transparent;
   cursor: pointer;
 }
 
-.c-board-toolbar__color.is-active {
-  box-shadow: 0 0 0 2px rgb(0 0 0 / 80%), 0 0 0 4px var(--grey-50);
+.c-board-toolbar__color-swatch {
+  display: block;
+  width: 32px;
+  height: 32px;
+}
+
+.c-board-toolbar__color .c-board-toolbar__select-frame {
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* --- "+" popover -------------------------------------------------------- */
@@ -645,9 +669,12 @@
   z-index: 51;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
   min-width: 220px;
-  padding: 14px;  background: rgb(40 40 40 / 96%);
+  max-width: calc(100vw - 48px);
+  padding: 8px;
+  background: rgb(40 40 40 / 96%);
+  box-sizing: border-box;
 }
 
 .c-board-toolbar__add-row {
@@ -655,7 +682,8 @@
   align-items: center;
   gap: 12px;
   padding: 10px 8px;
-  border: 0;  background: transparent;
+  border: 0;
+  background: transparent;
   color: var(--grey-50);
   font-family: var(--font-body);
   font-size: 1rem;
@@ -684,7 +712,8 @@
   width: 48px;
   height: 48px;
   padding: 0;
-  border: 2px solid rgb(255 255 255 / 30%);  background-size: cover;
+  border: 2px solid rgb(255 255 255 / 30%);
+  background-size: cover;
   cursor: pointer;
 }
 
@@ -698,7 +727,8 @@
   width: 48px;
   height: 48px;
   padding: 0;
-  border: 0;  background: rgb(255 255 255 / 8%);
+  border: 0;
+  background: rgb(255 255 255 / 8%);
   cursor: pointer;
 }
 

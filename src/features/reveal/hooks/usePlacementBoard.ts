@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BOARD_BACKGROUNDS,
-  BOARD_COLORS,
+  BOARD_DEFAULT_COLOR,
   BOARD_MAX_SCALE,
   BOARD_MIN_SCALE,
 } from "@/features/reveal/lib/boardData";
@@ -30,7 +30,7 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeTool, setActiveTool] = useState<BoardTool | null>(null);
   const [backgroundId, setBackgroundId] = useState(BOARD_BACKGROUNDS[0].id);
-  const [activeColor, setActiveColor] = useState<string>(BOARD_COLORS[8]);
+  const [activeColor, setActiveColor] = useState<string>(BOARD_DEFAULT_COLOR);
   // The sticker currently "loaded" on the cursor as a FigJam-style stamp; null
   // when not stamping. While set, tapping the board drops a copy.
   const [stampSticker, setStampSticker] = useState<string | null>(null);
@@ -173,6 +173,14 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
     );
   }, []);
 
+  const moveItemBy = useCallback((id: string, dx: number, dy: number) => {
+    setItems((current) =>
+      current.map((item) =>
+        item.id === id ? { ...item, x: item.x + dx, y: item.y + dy } : item,
+      ),
+    );
+  }, []);
+
   const removeItem = useCallback((id: string) => {
     pushHistory();
     setItems((current) => current.filter((item) => item.id !== id));
@@ -220,6 +228,7 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
     canUndo,
     commitDrawing,
     items,
+    moveItemBy,
     penOpacity,
     penStrokeIndex,
     placeFromTray,

@@ -1,4 +1,5 @@
 import {
+  useEffect,
   useRef,
   type CSSProperties,
   type PointerEvent,
@@ -25,11 +26,13 @@ type Props = {
   onEditText: (id: string, text: string) => void;
 };
 
-type DragState = {
-  pointerId: number;
-  lastX: number;
-  lastY: number;
-  moved: boolean;
+type PinchState = {
+  startDist: number;
+  startScale: number;
+  startRotate: number;
+  startAngle: number;
+  lastMidX: number;
+  lastMidY: number;
 };
 
 export function BoardItemView({
@@ -44,42 +47,67 @@ export function BoardItemView({
   onRemove,
   onEditText,
 }: Props) {
-  const dragRef = useRef<DragState | null>(null);
+  // Pointers currently held on this item — 1 = drag, 2 = pinch scale/rotate.
+  const pointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchRef = useRef<PinchState | null>(null);
   const rotateRef = useRef<{ cx: number; cy: number; startAngle: number; startRotate: number } | null>(null);
-  const resizeRef = useRef<{ cx: number; cy: number; startDist: number; startScale: number } | null>(null);
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    if (item.kind === "text" && isSelected) {
-      // Let the textarea receive the caret instead of starting a drag.
-      return;
-    }
+    // Items own their gestures so board tap-to-deselect does not steal focus.
     event.stopPropagation();
     event.currentTarget.setPointerCapture(event.pointerId);
     onSelect(item.id);
-    dragRef.current = {
-      pointerId: event.pointerId,
-      lastX: event.clientX,
-      lastY: event.clientY,
-      moved: false,
-    };
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    if (pointersRef.current.size === 2) {
+      const [a, b] = [...pointersRef.current.values()];
+      pinchRef.current = {
+        startDist: Math.max(Math.hypot(a.x - b.x, a.y - b.y), 1),
+        startScale: item.scale,
+        startRotate: item.rotate,
+        startAngle: Math.atan2(b.y - a.y, b.x - a.x),
+        lastMidX: (a.x + b.x) / 2,
+        lastMidY: (a.y + b.y) / 2,
+      };
+    }
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    const drag = dragRef.current;
-    if (!drag || drag.pointerId !== event.pointerId) {
+    event.stopPropagation();
+    const prev = pointersRef.current.get(event.pointerId);
+    if (!prev) {
       return;
     }
-    const dx = event.clientX - drag.lastX;
-    const dy = event.clientY - drag.lastY;
-    drag.lastX = event.clientX;
-    drag.lastY = event.clientY;
-    drag.moved = true;
-    onMove(item.id, dx, dy);
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+
+    // Two fingers → pinch to scale + rotate, and pan by the midpoint.
+    if (pointersRef.current.size >= 2 && pinchRef.current) {
+      const [a, b] = [...pointersRef.current.values()];
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const angle = Math.atan2(b.y - a.y, b.x - a.x);
+      const midX = (a.x + b.x) / 2;
+      const midY = (a.y + b.y) / 2;
+      const pinch = pinchRef.current;
+
+      onScale(item.id, Math.min(Math.max((pinch.startScale * dist) / pinch.startDist, 0.3), 5));
+      onRotate(item.id, Math.round(pinch.startRotate + ((angle - pinch.startAngle) * 180) / Math.PI));
+      onMove(item.id, midX - pinch.lastMidX, midY - pinch.lastMidY);
+      pinch.lastMidX = midX;
+      pinch.lastMidY = midY;
+      return;
+    }
+
+    // Single finger → drag.
+    if (pointersRef.current.size === 1) {
+      onMove(item.id, event.clientX - prev.x, event.clientY - prev.y);
+    }
   };
 
   const endDrag = (event: PointerEvent<HTMLDivElement>) => {
-    if (dragRef.current?.pointerId === event.pointerId) {
-      dragRef.current = null;
+    event.stopPropagation();
+    pointersRef.current.delete(event.pointerId);
+    if (pointersRef.current.size < 2) {
+      pinchRef.current = null;
     }
   };
 
@@ -113,38 +141,6 @@ export function BoardItemView({
 
   const handleRotateUp = () => {
     rotateRef.current = null;
-  };
-
-  const handleResizeDown = (event: PointerEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
-    event.currentTarget.setPointerCapture(event.pointerId);
-    const host = event.currentTarget.closest(".c-board-item") as HTMLElement | null;
-    if (!host) {
-      return;
-    }
-    const rect = host.getBoundingClientRect();
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    resizeRef.current = {
-      cx,
-      cy,
-      startDist: Math.max(Math.hypot(event.clientX - cx, event.clientY - cy), 1),
-      startScale: item.scale,
-    };
-  };
-
-  const handleResizeMove = (event: PointerEvent<HTMLButtonElement>) => {
-    const state = resizeRef.current;
-    if (!state) {
-      return;
-    }
-    const dist = Math.hypot(event.clientX - state.cx, event.clientY - state.cy);
-    const next = (state.startScale * dist) / state.startDist;
-    onScale(item.id, Math.min(Math.max(next, 0.3), 5));
-  };
-
-  const handleResizeUp = () => {
-    resizeRef.current = null;
   };
 
   const style: CSSProperties = {
@@ -213,18 +209,6 @@ export function BoardItemView({
             onPointerUp={handleRotateUp}
             onPointerCancel={handleRotateUp}
           />
-          {item.kind !== "text" && (
-            <button
-              type="button"
-              className="c-board-item__resize"
-              aria-label="Redimensionner"
-              style={hudStyle}
-              onPointerDown={handleResizeDown}
-              onPointerMove={handleResizeMove}
-              onPointerUp={handleResizeUp}
-              onPointerCancel={handleResizeUp}
-            />
-          )}
         </>
       )}
     </div>
@@ -242,6 +226,20 @@ function ItemBody({
   isSelected: boolean;
   onEditText: (id: string, text: string) => void;
 }) {
+  const textRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (item.kind !== "text" || !isSelected) {
+      return;
+    }
+    const field = textRef.current;
+    if (!field) {
+      return;
+    }
+    field.focus();
+    field.setSelectionRange(field.value.length, field.value.length);
+  }, [isSelected, item.id, item.kind]);
+
   if (item.kind === "photo") {
     return <BoardPhoto imageUrl={item.imageUrl} customization={customization} />;
   }
@@ -263,6 +261,7 @@ function ItemBody({
   // text
   return (
     <textarea
+      ref={textRef}
       className="c-board-text"
       value={item.text ?? ""}
       readOnly={!isSelected}
@@ -270,11 +269,6 @@ function ItemBody({
       spellCheck={false}
       style={{ color: item.color, fontFamily: item.fontId ? getFontCss(item.fontId) : undefined }}
       onChange={(event) => onEditText(item.id, event.target.value)}
-      onPointerDown={(event) => {
-        if (isSelected) {
-          event.stopPropagation();
-        }
-      }}
     />
   );
 }

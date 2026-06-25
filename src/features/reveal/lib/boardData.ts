@@ -10,16 +10,18 @@ export const BOARD_SURFACE_HEIGHT = 2200;
 
 /** Palette shown by the colour picker (top → bottom in screenshot order). */
 export const BOARD_COLORS = [
-  "#C43B89",
+  "#ffffff",
   "#00a2e0",
   "#00b13f",
-  "#ffb500",
-  "#ff8203",
-  "#da281c",
-  "#ffffff",
-  "#e9e9e9",
   "#151515",
+  "#C43B89",
+  "#da281c",
+  "#e9e9e9",
+  "#ff8203",
+  "#ffb500",
 ] as const;
+
+export const BOARD_DEFAULT_COLOR = BOARD_COLORS[0];
 
 /** The two scotch pieces you can drop — same tape, different size. */
 export const SCOTCH_PIECES = [

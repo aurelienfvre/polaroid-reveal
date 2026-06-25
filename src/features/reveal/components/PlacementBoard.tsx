@@ -18,6 +18,7 @@ import {
   BOARD_MIN_SCALE,
   BOARD_SURFACE_HEIGHT,
   BOARD_SURFACE_WIDTH,
+  PEN_DRAW_WIDTHS,
 } from "@/features/reveal/lib/boardData";
 import type {
   BoardShape,
@@ -30,8 +31,22 @@ type Props = {
   photos: CanvasPhoto[];
 };
 
+type BoardStroke = {
+  pointerId: number;
+  points: { x: number; y: number }[];
+  color: string;
+  width: number;
+  opacity: number;
+};
+
 function clamp(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
+}
+
+function buildPath(points: { x: number; y: number }[]) {
+  return points
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+    .join(" ");
 }
 
 export function PlacementBoard({ customizations, photos }: Props) {
@@ -48,6 +63,9 @@ export function PlacementBoard({ customizations, photos }: Props) {
   const [trayDrag, setTrayDrag] = useState<{ id: string; x: number; y: number } | null>(null);
   // Screen position of the sticker "stamp" riding the cursor (FigJam-style).
   const [stampPos, setStampPos] = useState<{ x: number; y: number } | null>(null);
+  // The ref keeps pointer handlers stable; state is the renderable live ink.
+  const strokeRef = useRef<BoardStroke | null>(null);
+  const [liveStroke, setLiveStroke] = useState<BoardStroke | null>(null);
 
   // Open centred horizontally on the surface, just below the header.
   useEffect(() => {
@@ -101,6 +119,19 @@ export function PlacementBoard({ customizations, photos }: Props) {
       const [a, b] = [...pointersRef.current.values()];
       gestureRef.current.lastDist = Math.hypot(a.x - b.x, a.y - b.y);
     }
+
+    // Pen tool: begin a freehand stroke (single finger).
+    if (board.activeTool === "pen" && pointersRef.current.size === 1) {
+      const stroke = {
+        pointerId: event.pointerId,
+        points: [toBoardPoint(event.clientX, event.clientY)],
+        color: board.activeColor,
+        width: PEN_DRAW_WIDTHS[board.penStrokeIndex] / board.viewport.scale,
+        opacity: board.penOpacity / 100,
+      };
+      strokeRef.current = stroke;
+      setLiveStroke(stroke);
+    }
   };
 
   const handleViewportPointerMove = (event: PointerEvent<HTMLDivElement>) => {
@@ -117,6 +148,19 @@ export function PlacementBoard({ customizations, photos }: Props) {
     const dy = event.clientY - tracked.y;
     pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
     gestureRef.current.movedDistance += Math.hypot(dx, dy);
+
+    // Pen tool: extend the in-progress stroke instead of panning/zooming.
+    if (strokeRef.current) {
+      if (strokeRef.current.pointerId === event.pointerId) {
+        const stroke = {
+          ...strokeRef.current,
+          points: [...strokeRef.current.points, toBoardPoint(event.clientX, event.clientY)],
+        };
+        strokeRef.current = stroke;
+        setLiveStroke(stroke);
+      }
+      return;
+    }
 
     if (pointersRef.current.size >= 2) {
       const [a, b] = [...pointersRef.current.values()];
@@ -140,10 +184,30 @@ export function PlacementBoard({ customizations, photos }: Props) {
   };
 
   const handleViewportPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    const wasTracked = pointersRef.current.has(event.pointerId);
     const wasSinglePointer = pointersRef.current.size === 1;
     pointersRef.current.delete(event.pointerId);
     if (pointersRef.current.size < 2) {
       gestureRef.current.lastDist = 0;
+    }
+
+    // Pen tool: commit the finished stroke as a drawing.
+    if (strokeRef.current) {
+      const stroke = strokeRef.current;
+      if (stroke.pointerId === event.pointerId) {
+        strokeRef.current = null;
+        setLiveStroke(null);
+        if (stroke.points.length > 1) {
+          board.commitDrawing(buildPath(stroke.points), stroke.color, stroke.width, stroke.opacity);
+        }
+      }
+      return;
+    }
+
+    // Pointer-ups that bubbled from a captured item (it handles its own
+    // selection/drag) must NOT run the board's tap-to-deselect logic.
+    if (!wasTracked) {
+      return;
     }
 
     // Stamp mode: drop a copy of the loaded sticker where the cursor lands and
@@ -257,6 +321,7 @@ export function PlacementBoard({ customizations, photos }: Props) {
         className={[
           "c-placement-board__viewport",
           board.stampSticker ? "is-stamping" : "",
+          board.activeTool === "pen" ? "is-drawing" : "",
         ].filter(Boolean).join(" ")}
         ref={viewportRef}
         onPointerDown={handleViewportPointerDown}
@@ -265,27 +330,64 @@ export function PlacementBoard({ customizations, photos }: Props) {
         onPointerCancel={handleViewportPointerUp}
         onWheel={handleWheel}
       >
-        <div className="c-placement-board__surface" ref={surfaceRef} style={surfaceStyle}>
-          {board.items.map((item) => (
-            <BoardItemView
-              key={item.id}
-              item={item}
-              customization={item.memoryId ? customizations[item.memoryId] : undefined}
-              isSelected={board.selectedId === item.id}
-              inverseScale={1 / board.viewport.scale}
-              onSelect={board.selectItem}
-              onMove={(id, dx, dy) =>
-                board.updateItem(id, {
-                  x: item.x + dx / board.viewport.scale,
-                  y: item.y + dy / board.viewport.scale,
-                })
-              }
-              onRotate={(id, rotate) => board.updateItem(id, { rotate })}
-              onScale={(id, scale) => board.updateItem(id, { scale })}
-              onRemove={board.removeItem}
-              onEditText={(id, text) => board.updateItem(id, { text })}
-            />
-          ))}
+        <div
+          className={[
+            "c-placement-board__surface",
+            board.activeTool === "pen" ? "is-pen" : "",
+          ].filter(Boolean).join(" ")}
+          ref={surfaceRef}
+          style={surfaceStyle}
+        >
+          {board.items
+            .filter((item) => item.kind !== "drawing")
+            .map((item) => (
+              <BoardItemView
+                key={item.id}
+                item={item}
+                customization={item.memoryId ? customizations[item.memoryId] : undefined}
+                isSelected={board.selectedId === item.id}
+                inverseScale={1 / board.viewport.scale}
+                onSelect={board.selectItem}
+                onMove={(id, dx, dy) => board.moveItemBy(id, dx / board.viewport.scale, dy / board.viewport.scale)}
+                onRotate={(id, rotate) => board.updateItem(id, { rotate })}
+                onScale={(id, scale) => board.updateItem(id, { scale })}
+                onRemove={board.removeItem}
+                onEditText={(id, text) => board.updateItem(id, { text })}
+              />
+            ))}
+
+          {/* Freehand pen ink (committed strokes + the live one). */}
+          <svg
+            className="c-placement-board__ink"
+            width={BOARD_SURFACE_WIDTH}
+            height={BOARD_SURFACE_HEIGHT}
+            viewBox={`0 0 ${BOARD_SURFACE_WIDTH} ${BOARD_SURFACE_HEIGHT}`}
+            fill="none"
+          >
+            {board.items
+              .filter((item) => item.kind === "drawing")
+              .map((item) => (
+                <path
+                  key={item.id}
+                  d={item.d}
+                  stroke={item.color}
+                  strokeWidth={item.strokeWidth}
+                  strokeOpacity={item.opacity}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              ))}
+            {liveStroke && liveStroke.points.length > 1 && (
+              <path
+                d={buildPath(liveStroke.points)}
+                stroke={liveStroke.color}
+                strokeWidth={liveStroke.width}
+                strokeOpacity={liveStroke.opacity}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            )}
+          </svg>
         </div>
       </div>
 
@@ -336,40 +438,44 @@ export function PlacementBoard({ customizations, photos }: Props) {
       )}
 
       {board.tray.length === 0 && (
-      <BoardToolbar
-        activeTool={board.activeTool}
-        activeColor={board.activeColor}
-        backgroundId={board.backgroundId}
-        isStamping={Boolean(board.stampSticker)}
-        textFont={board.textFont}
-        onToolToggle={board.toggleTool}
-        // Picking a colour recolours the selected text/shape (and drives the
-        // colour used by the pen and newly placed text).
-        onColorChange={(color) => {
-          board.setActiveColor(color);
-          if (board.selectedId) {
-            board.updateItem(board.selectedId, { color });
+        <BoardToolbar
+          activeTool={board.activeTool}
+          activeColor={board.activeColor}
+          backgroundId={board.backgroundId}
+          isStamping={Boolean(board.stampSticker)}
+          textFont={board.textFont}
+          penStrokeIndex={board.penStrokeIndex}
+          penOpacity={board.penOpacity}
+          onToolToggle={board.toggleTool}
+          // Picking a colour recolours the selected text/shape (and drives the
+          // colour used by the pen and newly placed text).
+          onColorChange={(color) => {
+            board.setActiveColor(color);
+            if (board.selectedId) {
+              board.updateItem(board.selectedId, { color });
+            }
+          }}
+          onBackgroundChange={board.setBackgroundId}
+          onAddTape={(src, scale) => addCentered({ kind: "tape", src, x: 0, y: 0, rotate: -6, scale })}
+          onTextFontChange={(fontId) => {
+            board.setTextFont(fontId);
+            if (board.selectedId) {
+              board.updateItem(board.selectedId, { fontId });
+            }
+          }}
+          onPenStrokeChange={board.setPenStrokeIndex}
+          onPenOpacityChange={board.setPenOpacity}
+          onAddShape={(shape: BoardShape) =>
+            addCentered({ kind: "shape", shape, color: board.activeColor, x: 0, y: 0, rotate: 0, scale: 1 })
           }
-        }}
-        onBackgroundChange={board.setBackgroundId}
-        onAddTape={(src, scale) => addCentered({ kind: "tape", src, x: 0, y: 0, rotate: -6, scale })}
-        onTextFontChange={(fontId) => {
-          board.setTextFont(fontId);
-          if (board.selectedId) {
-            board.updateItem(board.selectedId, { fontId });
-          }
-        }}
-        onAddShape={(shape: BoardShape) =>
-          addCentered({ kind: "shape", shape, color: board.activeColor, x: 0, y: 0, rotate: 0, scale: 1 })
-        }
-        // Picking a sticker loads it on the cursor as a stamp rather than
-        // dropping it immediately — tap the board to place copies.
-        onAddSticker={(src) => board.setStampSticker(src)}
-        onClearStamp={() => {
-          board.setStampSticker(null);
-          board.setActiveTool(null);
-        }}
-      />
+          // Picking a sticker loads it on the cursor as a stamp rather than
+          // dropping it immediately — tap the board to place copies.
+          onAddSticker={(src) => board.setStampSticker(src)}
+          onClearStamp={() => {
+            board.setStampSticker(null);
+            board.setActiveTool(null);
+          }}
+        />
       )}
     </div>
   );
