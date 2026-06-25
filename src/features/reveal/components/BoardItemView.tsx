@@ -20,6 +20,7 @@ type Props = {
   onSelect: (id: string) => void;
   onMove: (id: string, dx: number, dy: number) => void;
   onRotate: (id: string, rotate: number) => void;
+  onScale: (id: string, scale: number) => void;
   onRemove: (id: string) => void;
   onEditText: (id: string, text: string) => void;
 };
@@ -39,11 +40,13 @@ export function BoardItemView({
   onSelect,
   onMove,
   onRotate,
+  onScale,
   onRemove,
   onEditText,
 }: Props) {
   const dragRef = useRef<DragState | null>(null);
   const rotateRef = useRef<{ cx: number; cy: number; startAngle: number; startRotate: number } | null>(null);
+  const resizeRef = useRef<{ cx: number; cy: number; startDist: number; startScale: number } | null>(null);
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (item.kind === "text" && isSelected) {
@@ -112,6 +115,38 @@ export function BoardItemView({
     rotateRef.current = null;
   };
 
+  const handleResizeDown = (event: PointerEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const host = event.currentTarget.closest(".c-board-item") as HTMLElement | null;
+    if (!host) {
+      return;
+    }
+    const rect = host.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    resizeRef.current = {
+      cx,
+      cy,
+      startDist: Math.max(Math.hypot(event.clientX - cx, event.clientY - cy), 1),
+      startScale: item.scale,
+    };
+  };
+
+  const handleResizeMove = (event: PointerEvent<HTMLButtonElement>) => {
+    const state = resizeRef.current;
+    if (!state) {
+      return;
+    }
+    const dist = Math.hypot(event.clientX - state.cx, event.clientY - state.cy);
+    const next = (state.startScale * dist) / state.startDist;
+    onScale(item.id, Math.min(Math.max(next, 0.3), 5));
+  };
+
+  const handleResizeUp = () => {
+    resizeRef.current = null;
+  };
+
   const style: CSSProperties = {
     left: `${item.x}px`,
     top: `${item.y}px`,
@@ -178,6 +213,18 @@ export function BoardItemView({
             onPointerUp={handleRotateUp}
             onPointerCancel={handleRotateUp}
           />
+          {item.kind !== "text" && (
+            <button
+              type="button"
+              className="c-board-item__resize"
+              aria-label="Redimensionner"
+              style={hudStyle}
+              onPointerDown={handleResizeDown}
+              onPointerMove={handleResizeMove}
+              onPointerUp={handleResizeUp}
+              onPointerCancel={handleResizeUp}
+            />
+          )}
         </>
       )}
     </div>

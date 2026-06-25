@@ -10,6 +10,7 @@ import type {
   BoardTool,
   BoardViewport,
   CanvasPhoto,
+  PhotoFontId,
 } from "@/features/reveal/types/revealTypes";
 
 let itemSeq = 0;
@@ -33,6 +34,9 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
   // The sticker currently "loaded" on the cursor as a FigJam-style stamp; null
   // when not stamping. While set, tapping the board drops a copy.
   const [stampSticker, setStampSticker] = useState<string | null>(null);
+  const [textFont, setTextFont] = useState<PhotoFontId>("bricolage");
+  const [penStrokeIndex, setPenStrokeIndex] = useState(1);
+  const [penOpacity, setPenOpacity] = useState(100);
   const [viewport, setViewport] = useState<BoardViewport>({ x: 0, y: 0, scale: 1 });
 
   const zRef = useRef(20);
@@ -139,6 +143,30 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
     [nextZ, pushHistory],
   );
 
+  // Commit a finished freehand pen stroke as a (non-selectable) board item.
+  const commitDrawing = useCallback(
+    (d: string, color: string, strokeWidth: number, opacity: number) => {
+      pushHistory();
+      setItems((current) => [
+        ...current,
+        {
+          id: nextItemId("drawing"),
+          kind: "drawing",
+          d,
+          color,
+          strokeWidth,
+          opacity,
+          x: 0,
+          y: 0,
+          rotate: 0,
+          scale: 1,
+          zIndex: nextZ(),
+        },
+      ]);
+    },
+    [nextZ, pushHistory],
+  );
+
   const updateItem = useCallback((id: string, patch: Partial<BoardItem>) => {
     setItems((current) =>
       current.map((item) => (item.id === id ? { ...item, ...patch } : item)),
@@ -190,7 +218,10 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
     background,
     backgroundId,
     canUndo,
+    commitDrawing,
     items,
+    penOpacity,
+    penStrokeIndex,
     placeFromTray,
     placeSticker,
     removeItem,
@@ -199,8 +230,12 @@ export function usePlacementBoard(photos: CanvasPhoto[]) {
     setActiveColor,
     setActiveTool,
     setBackgroundId,
+    setPenOpacity,
+    setPenStrokeIndex,
     setStampSticker,
+    setTextFont,
     stampSticker,
+    textFont,
     toggleTool,
     tray,
     undo,

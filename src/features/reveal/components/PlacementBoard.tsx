@@ -156,6 +156,25 @@ export function PlacementBoard({ customizations, photos }: Props) {
       return;
     }
 
+    // Text tool: tap the board to drop an editable text box (Figma-style).
+    if (board.activeTool === "text") {
+      if (wasSinglePointer && gestureRef.current.movedDistance < 6) {
+        const point = toBoardPoint(event.clientX, event.clientY);
+        board.addItem({
+          kind: "text",
+          text: "Texte",
+          color: board.activeColor,
+          fontId: board.textFont,
+          x: point.x,
+          y: point.y,
+          rotate: 0,
+          scale: 1,
+        });
+        board.setActiveTool(null);
+      }
+      return;
+    }
+
     // A tap on the empty board (no real drag) clears the selection.
     if (pointersRef.current.size === 0 && gestureRef.current.movedDistance < 6) {
       board.selectItem(null);
@@ -262,6 +281,7 @@ export function PlacementBoard({ customizations, photos }: Props) {
                 })
               }
               onRotate={(id, rotate) => board.updateItem(id, { rotate })}
+              onScale={(id, scale) => board.updateItem(id, { scale })}
               onRemove={board.removeItem}
               onEditText={(id, text) => board.updateItem(id, { text })}
             />
@@ -321,13 +341,24 @@ export function PlacementBoard({ customizations, photos }: Props) {
         activeColor={board.activeColor}
         backgroundId={board.backgroundId}
         isStamping={Boolean(board.stampSticker)}
+        textFont={board.textFont}
         onToolToggle={board.toggleTool}
-        onColorChange={board.setActiveColor}
+        // Picking a colour recolours the selected text/shape (and drives the
+        // colour used by the pen and newly placed text).
+        onColorChange={(color) => {
+          board.setActiveColor(color);
+          if (board.selectedId) {
+            board.updateItem(board.selectedId, { color });
+          }
+        }}
         onBackgroundChange={board.setBackgroundId}
         onAddTape={(src, scale) => addCentered({ kind: "tape", src, x: 0, y: 0, rotate: -6, scale })}
-        onAddText={() =>
-          addCentered({ kind: "text", text: "Texte", color: board.activeColor, x: 0, y: 0, rotate: 0, scale: 1 })
-        }
+        onTextFontChange={(fontId) => {
+          board.setTextFont(fontId);
+          if (board.selectedId) {
+            board.updateItem(board.selectedId, { fontId });
+          }
+        }}
         onAddShape={(shape: BoardShape) =>
           addCentered({ kind: "shape", shape, color: board.activeColor, x: 0, y: 0, rotate: 0, scale: 1 })
         }

@@ -208,6 +208,19 @@
   cursor: grab;
 }
 
+.c-board-item__resize {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 2px solid var(--blue-500);
+  background: var(--grey-50);
+  transform-origin: right bottom;
+  cursor: nwse-resize;
+}
+
 /* --- Tray of prints "in hand" ------------------------------------------ */
 /* Full-size polaroids, overlapped + tilted, anchored to the bottom and pushed
  * partly below the fold (same component as a placed print, never shrunk). */
@@ -519,42 +532,85 @@
   }
 }
 
+/* Font picker submenu (reuses the photo-personalisation idea). */
+.c-board-toolbar__panel--fonts {
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px 8px 24px;
+}
+
+.c-board-toolbar__font {
+  display: grid;
+  place-items: center;
+  min-width: 56px;
+  padding: 0 8px;
+  border: 0;
+  background: transparent;
+  color: rgb(255 255 255 / 55%);
+  font-size: 2.2rem;
+  cursor: pointer;
+}
+
+.c-board-toolbar__font.is-active {
+  color: var(--grey-50);
+}
+
+/* Pen submenu: brush sizes on top, opacity slider below. */
 .c-board-toolbar__panel--pen {
   flex-direction: column;
-  align-items: stretch;
+  align-items: flex-start;
+  gap: 10px;
+  width: 390px;
+  max-width: calc(100vw - 48px);
+  margin-inline: auto;
+  padding: 16px 24px 8px 24px;
 }
 
 .c-board-toolbar__strokes {
   display: flex;
+  align-self: stretch;
   align-items: center;
-  justify-content: space-around;
-  gap: 18px;
+  justify-content: space-between;
 }
 
 .c-board-toolbar__stroke {
+  position: relative;
   display: grid;
   place-items: center;
   width: 44px;
   height: 44px;
   padding: 0;
   border: 0;
-  background: rgb(255 255 255 / 6%);
+  background: transparent;
   cursor: pointer;
-
-  span {
-    display: block;
-    border-radius: 50%;
-    background: var(--grey-50);
-  }
-}
-
-.c-board-toolbar__stroke.is-active {
-  background: rgb(255 255 255 / 18%);
 }
 
 .c-board-toolbar__opacity {
-  width: 100%;
-  accent-color: var(--grey-50);
+  position: relative;
+  align-self: stretch;
+  height: 36px;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.c-board-toolbar__opacity-track {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgb(255 255 255 / 0%), var(--grey-50)),
+    repeating-conic-gradient(#bfbfbf 0% 25%, #ffffff 0% 50%) 0 0 / 16px 16px;
+}
+
+.c-board-toolbar__opacity-handle {
+  position: absolute;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 36px;
+  background: var(--grey-50);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
 
 /* --- Colour palette ----------------------------------------------------- */

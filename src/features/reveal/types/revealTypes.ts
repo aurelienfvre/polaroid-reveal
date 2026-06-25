@@ -68,7 +68,7 @@ export type PanelCopy = {
 
 export type BoardTool = "tape" | "sticker" | "text" | "pen" | "color" | "add";
 
-export type BoardItemKind = "photo" | "sticker" | "tape" | "text" | "shape";
+export type BoardItemKind = "photo" | "sticker" | "tape" | "text" | "shape" | "drawing";
 
 export type BoardShape = "rect" | "circle";
 
@@ -90,9 +90,13 @@ export type BoardItem = {
   /** Text content for text items. */
   text?: string;
   fontId?: PhotoFontId;
-  /** Fill colour for text and shapes. */
+  /** Fill colour for text and shapes; stroke colour for drawings. */
   color?: string;
   shape?: BoardShape;
+  /** Freehand drawing: SVG path (board-space) + stroke params. */
+  d?: string;
+  strokeWidth?: number;
+  opacity?: number;
 };
 
 export type BoardViewport = {

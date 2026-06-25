@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState, type PointerEvent } from "react";
 import {
   BackgroundIcon,
   PlusIcon,
@@ -9,22 +9,24 @@ import { StickerSheet } from "@/features/reveal/components/StickerSheet";
 import {
   BOARD_BACKGROUNDS,
   BOARD_COLORS,
-  PEN_STROKES,
+  PEN_STROKE_SVGS,
   SCOTCH_PIECES,
   SCOTCH_TEXTURES,
 } from "@/features/reveal/lib/boardData";
-import type { BoardShape, BoardTool } from "@/features/reveal/types/revealTypes";
+import { PHOTO_FONTS } from "@/features/reveal/lib/photoFilters";
+import type { BoardShape, BoardTool, PhotoFontId } from "@/features/reveal/types/revealTypes";
 
 type Props = {
   activeTool: BoardTool | null;
   activeColor: string;
   backgroundId: string;
   isStamping: boolean;
+  textFont: PhotoFontId;
   onToolToggle: (tool: BoardTool) => void;
   onColorChange: (color: string) => void;
   onBackgroundChange: (id: string) => void;
   onAddTape: (src: string, scale: number) => void;
-  onAddText: () => void;
+  onTextFontChange: (id: PhotoFontId) => void;
   onAddShape: (shape: BoardShape) => void;
   onAddSticker: (src: string) => void;
   onClearStamp: () => void;
@@ -35,18 +37,19 @@ export function BoardToolbar({
   activeColor,
   backgroundId,
   isStamping,
+  textFont,
   onToolToggle,
   onColorChange,
   onBackgroundChange,
   onAddTape,
-  onAddText,
+  onTextFontChange,
   onAddShape,
   onAddSticker,
   onClearStamp,
 }: Props) {
   // Sub-view of the "+" popover: the menu itself, or a drilled-in picker.
   const [addView, setAddView] = useState<"menu" | "background" | "shape">("menu");
-  const [penStroke, setPenStroke] = useState<number>(PEN_STROKES[1]);
+  const [penStroke, setPenStroke] = useState(1);
   const [penOpacity, setPenOpacity] = useState(100);
   // Scotch texture is a purely visual selection (doesn't change what's placed).
   const [scotchTexture, setScotchTexture] = useState(0);
@@ -114,33 +117,49 @@ export function BoardToolbar({
         </div>
       )}
 
+      {activeTool === "text" && (
+        <div className="c-board-toolbar__panel c-board-toolbar__panel--fonts">
+          {PHOTO_FONTS.map((font) => (
+            <button
+              key={font.id}
+              type="button"
+              className={[
+                "c-board-toolbar__font",
+                textFont === font.id ? "is-active" : "",
+              ].filter(Boolean).join(" ")}
+              style={{ fontFamily: font.css }}
+              aria-label={font.label}
+              onClick={() => onTextFontChange(font.id)}
+            >
+              Aa
+            </button>
+          ))}
+        </div>
+      )}
+
       {activeTool === "pen" && (
-        <ToolPanel className="c-board-toolbar__panel--pen">
+        <div className="c-board-toolbar__panel c-board-toolbar__panel--pen">
           <div className="c-board-toolbar__strokes">
-            {PEN_STROKES.map((stroke) => (
+            {PEN_STROKE_SVGS.map((stroke, index) => (
               <button
-                key={stroke}
+                key={stroke.strokeWidth}
                 type="button"
                 className={[
                   "c-board-toolbar__stroke",
-                  penStroke === stroke ? "is-active" : "",
+                  penStroke === index ? "is-active" : "",
                 ].filter(Boolean).join(" ")}
-                onClick={() => setPenStroke(stroke)}
+                aria-label={`Epaisseur ${stroke.strokeWidth}`}
+                onClick={() => setPenStroke(index)}
               >
-                <span style={{ width: stroke, height: stroke }} />
+                <svg width={stroke.w} height={stroke.h} viewBox={stroke.viewBox} fill="none">
+                  <path d={stroke.d} stroke={activeColor} strokeWidth={stroke.strokeWidth} />
+                </svg>
+                {penStroke === index && <SelectFrameIcon />}
               </button>
             ))}
           </div>
-          <input
-            className="c-board-toolbar__opacity"
-            type="range"
-            min={0}
-            max={100}
-            value={penOpacity}
-            aria-label="Opacite"
-            onChange={(event) => setPenOpacity(Number(event.target.value))}
-          />
-        </ToolPanel>
+          <PenOpacitySlider value={penOpacity} onChange={setPenOpacity} />
+        </div>
       )}
 
       {activeTool === "color" && (
@@ -235,7 +254,12 @@ export function BoardToolbar({
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/sticker_photo.png" alt="" draggable={false} />
           </ToolButton>
-          <ToolButton active={false} variant="text" onClick={onAddText} label="Texte">
+          <ToolButton
+            active={activeTool === "text"}
+            variant="text"
+            onClick={() => onToolToggle("text")}
+            label="Texte"
+          >
             <span className="c-board-toolbar__glyph">Aa</span>
           </ToolButton>
           <ToolButton
@@ -365,10 +389,65 @@ function SelectFrameIcon() {
   );
 }
 
-function ToolPanel({ children, className }: { children: React.ReactNode; className?: string }) {
+/** The black corner-bracket "select" handle used by the opacity slider. */
+function OpacityHandleIcon() {
   return (
-    <div className={["c-board-toolbar__panel", className].filter(Boolean).join(" ")}>
-      {children}
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M23 6.5V5C23 2.79086 21.2091 1 19 1H5C2.79086 1 1 2.79086 1 5V6.5M23 17.5V19C23 21.2091 21.2091 23 19 23H5C2.79086 23 1 21.2091 1 19V17.5"
+        stroke="#151515"
+        strokeWidth="2"
+      />
+    </svg>
+  );
+}
+
+/** Custom opacity slider: checkerboard→white track + select-frame handle. */
+function PenOpacitySlider({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  const update = (clientX: number) => {
+    const rect = trackRef.current?.getBoundingClientRect();
+    if (!rect) {
+      return;
+    }
+    const fraction = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
+    onChange(Math.round(fraction * 100));
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    update(event.clientX);
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.buttons === 0) {
+      return;
+    }
+    update(event.clientX);
+  };
+
+  return (
+    <div
+      className="c-board-toolbar__opacity"
+      ref={trackRef}
+      role="slider"
+      aria-label="Opacite"
+      aria-valuenow={value}
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+    >
+      <span className="c-board-toolbar__opacity-track" />
+      <span className="c-board-toolbar__opacity-handle" style={{ left: `${value}%` }}>
+        <OpacityHandleIcon />
+      </span>
     </div>
   );
 }
+
