@@ -1,7 +1,7 @@
 import type { CSSProperties, PointerEvent } from "react";
 import {
   getFilterCss,
-  getFontVar,
+  getFontCss,
   getTextureOpacity,
 } from "@/features/reveal/lib/photoFilters";
 import type {
@@ -46,7 +46,7 @@ export function CanvasPhotoCard({
   const grainOpacity = customization ? getTextureOpacity(customization.textureId) : 0;
   const caption = customization?.text?.trim();
   const captionStyle: CSSProperties = customization
-    ? { fontFamily: `var(${getFontVar(customization.fontId)}), cursive` }
+    ? { fontFamily: getFontCss(customization.fontId) }
     : {};
 
   const className = [

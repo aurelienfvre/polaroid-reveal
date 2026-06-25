@@ -15,7 +15,7 @@ export type PhotoFilterId =
 
 export type PhotoTextureId = "none" | "grain" | "dust";
 
-export type PhotoFontId = "commit" | "indie" | "bricolage";
+export type PhotoFontId = "bricolage" | "commit" | "indie" | "serif";
 
 export type PhotoCustomization = {
   filterId: PhotoFilterId;

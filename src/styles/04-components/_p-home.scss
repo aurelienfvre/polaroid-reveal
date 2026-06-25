@@ -10,7 +10,11 @@
   width: 100%;
   height: 100dvh;
   padding: 0;
-  background: var(--grey-500);
+  background:
+    var(--grey-500)
+    url("/images/BG_desk.jpg")
+    center / cover
+    no-repeat;
   overflow: hidden;
 }
 
@@ -89,5 +93,12 @@
 @media (max-width: 560px) {
   .p-home {
     padding: var(--space-3);
+  }
+
+  .p-home--is-camera,
+  .p-home--is-develop,
+  .p-home--is-personalize {
+    padding: 0;
+    background-image: url("/images/BG_mobile.jpg");
   }
 }

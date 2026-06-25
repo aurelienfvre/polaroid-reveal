@@ -33,11 +33,28 @@ export const PHOTO_TEXTURES: ReadonlyArray<{
 export const PHOTO_FONTS: ReadonlyArray<{
   id: PhotoFontId;
   label: string;
-  cssVar: string;
+  css: string;
 }> = [
-  { id: "indie", label: "Manuscrit", cssVar: "--font-family-indie-flower" },
-  { id: "commit", label: "Mono", cssVar: "--font-family-commit" },
-  { id: "bricolage", label: "Grotesk", cssVar: "--font-family-bricolage" },
+  {
+    id: "bricolage",
+    label: "Bricolage",
+    css: 'var(--font-family-bricolage, "Bricolage Grotesque"), sans-serif',
+  },
+  {
+    id: "indie",
+    label: "Indie Flower",
+    css: 'var(--font-family-indie_flower, "Indie Flower"), cursive',
+  },
+  {
+    id: "serif",
+    label: "Serif",
+    css: '"Libertinus Serif Display", Georgia, "Times New Roman", serif',
+  },
+  {
+    id: "commit",
+    label: "Commit Mono",
+    css: 'var(--font-family-commit, commit_mono), monospace',
+  },
 ];
 
 export const DEFAULT_CUSTOMIZATION: PhotoCustomization = {
@@ -55,6 +72,6 @@ export function getTextureOpacity(id: PhotoTextureId) {
   return PHOTO_TEXTURES.find((texture) => texture.id === id)?.opacity ?? 0;
 }
 
-export function getFontVar(id: PhotoFontId) {
-  return PHOTO_FONTS.find((font) => font.id === id)?.cssVar ?? "--font-family-indie-flower";
+export function getFontCss(id: PhotoFontId) {
+  return PHOTO_FONTS.find((font) => font.id === id)?.css ?? PHOTO_FONTS[0].css;
 }

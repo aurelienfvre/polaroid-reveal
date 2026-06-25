@@ -80,8 +80,6 @@ export function PersonalizeStage({
 
   return (
     <section className={className}>
-      <h1 className="c-perso__title">Personnalisation photo</h1>
-
       <div
         className="c-perso__stage"
         onPointerDown={handlePointerDown}
@@ -109,7 +107,9 @@ export function PersonalizeStage({
             <PersonalizePhotoCard
               customization={perso.getCustomization(photo.id)}
               isActive={isActive}
+              isTextActive={perso.activeTab === "text"}
               key={photo.id}
+              onTextChange={(text) => perso.updateActive({ text })}
               photo={photo}
               stackStyle={stackStyle}
             />
@@ -127,14 +127,6 @@ export function PersonalizeStage({
 
       {perso.activeTab === "text" && (
         <div className="c-perso__panel c-perso__panel--text">
-          <input
-            className="c-perso__text-input"
-            type="text"
-            maxLength={28}
-            placeholder="Ajoute une legende…"
-            value={perso.activeCustomization.text}
-            onChange={(event) => perso.updateActive({ text: event.target.value })}
-          />
           <div className="c-perso__fonts">
             {PHOTO_FONTS.map((font) => (
               <button
@@ -144,10 +136,11 @@ export function PersonalizeStage({
                 ].filter(Boolean).join(" ")}
                 key={font.id}
                 type="button"
-                style={{ fontFamily: `var(${font.cssVar}), cursive` }}
+                aria-label={font.label}
+                style={{ fontFamily: font.css }}
                 onClick={() => perso.updateActive({ fontId: font.id })}
               >
-                {font.label}
+                Aa
               </button>
             ))}
           </div>
