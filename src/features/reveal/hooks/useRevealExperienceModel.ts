@@ -1,4 +1,5 @@
 import type { RefObject } from "react";
+import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 import { useCanvasDrag } from "@/features/reveal/hooks/useCanvasDrag";
 import { useDevelopmentController } from "@/features/reveal/hooks/useDevelopmentController";
 import { usePhotoFlowActions } from "@/features/reveal/hooks/usePhotoFlowActions";
@@ -23,7 +24,16 @@ export function useRevealExperienceModel(
     phaseRef: flow.phaseRef,
     polaroidMotionRef,
   });
-  const motion = useDeviceOrientation(development.developMemory);
+  const triggerHaptic = usePolaroidHaptics();
+  // Buzz the phone on any physical shake while developing — independent of how
+  // far the print has developed — so movement always produces a tactile tick.
+  const handleShakeHaptic = (force: number) => {
+    if (flow.phaseRef.current !== "develop") {
+      return;
+    }
+    triggerHaptic("shake", { intensity: Math.min(0.8 + force * 0.2, 1) });
+  };
+  const motion = useDeviceOrientation(development.developMemory, handleShakeHaptic);
   const pointerTilt = usePointerTilt(
     stageRef,
     flow.phase === "develop" &&

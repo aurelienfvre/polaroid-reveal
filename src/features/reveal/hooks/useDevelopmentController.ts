@@ -26,7 +26,6 @@ export function useDevelopmentController({
   const [isRevealed, setIsRevealed] = useState(false);
   const revealProgressRef = useRef(0);
   const hasRevealedRef = useRef(false);
-  const lastShakeHapticAtRef = useRef(0);
   const triggerHaptic = usePolaroidHaptics();
 
   const writeProgress = useCallback(
@@ -43,26 +42,6 @@ export function useDevelopmentController({
     writeProgress(0);
     resetDevelopmentImpulse(polaroidMotionRef.current);
   }, [polaroidMotionRef, writeProgress]);
-
-  const triggerShakeHaptic = useCallback(
-    (impulse?: MotionImpulse) => {
-      if (impulse?.source !== "motion") {
-        return;
-      }
-
-      const now = performance.now();
-
-      // Fire often enough to feel like the print is buzzing in your hand as you
-      // shake it, and keep each pulse strong (intensity drives the duty cycle).
-      if (now - lastShakeHapticAtRef.current > 90) {
-        lastShakeHapticAtRef.current = now;
-        triggerHaptic("shake", {
-          intensity: Math.min(0.85 + impulse.force * 0.15, 1),
-        });
-      }
-    },
-    [triggerHaptic],
-  );
 
   const developMemory = useCallback(
     (amount: number, impulse?: MotionImpulse) => {
@@ -87,8 +66,6 @@ export function useDevelopmentController({
       revealProgressRef.current = nextProgress;
       writeProgress(nextProgress);
 
-      triggerShakeHaptic(impulse);
-
       if (nextProgress >= 1) {
         hasRevealedRef.current = true;
         // Snap the print straight as soon as it's developed so it stops feeling
@@ -98,7 +75,7 @@ export function useDevelopmentController({
         setIsRevealed(true);
       }
     },
-    [canDevelopRef, phaseRef, polaroidMotionRef, triggerHaptic, triggerShakeHaptic, writeProgress],
+    [canDevelopRef, phaseRef, polaroidMotionRef, triggerHaptic, writeProgress],
   );
 
   const revealNow = useCallback(() => {

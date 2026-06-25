@@ -1,11 +1,13 @@
 /**
- * A continuous-feeling motor whir for the time the print slides out: long
- * on-pulses with only a tiny gap so the buzz reads as one sustained motor
- * rather than a stutter. Runs ~7.2s — roughly triple EJECT_DURATION — so the
- * tactile motor keeps going well past the print landing instead of cutting
- * out early. Always played at full intensity so it stays strong throughout.
+ * A continuous motor whir that runs from the moment the shutter is tapped until
+ * the print is fully out and tappable. Built from a FEW long ON-pulses (each
+ * just under the 1s per-segment cap) with a tiny gap between them — rather than
+ * hundreds of micro-pulses, which browsers silently truncate (that's why the
+ * earlier patterns felt short: they were being cut off, not actually playing).
+ * Total ~4.6s so it comfortably covers SHOOT_DELAY (520ms) + EJECT_DURATION
+ * (2100ms) and keeps buzzing right through. Played at full intensity.
  */
-const EJECT_MOTOR_PATTERN = Array.from({ length: 120 }, () => [54, 6]).flat();
+const EJECT_MOTOR_PATTERN = Array.from({ length: 5 }, () => [920, 12]).flat();
 
 export const HAPTIC_EVENTS = {
   eject: [18, 42, 28],

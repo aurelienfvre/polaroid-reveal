@@ -42,12 +42,13 @@ export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce =
     isEjectingRef.current = true;
     setHideActionButton(hideButton);
 
+    // Start the motor whir on the tap itself so the vibration runs continuously
+    // from click → through the eject → until the print is fully out and
+    // tappable (the pattern length covers SHOOT_DELAY + EJECT_DURATION).
+    playHaptic("ejectMotor", { intensity: 1 });
+
     startTimeoutRef.current = window.setTimeout(() => {
       setIsEjecting(true);
-      // One continuous motor whir for the whole ejection (distinct from the
-      // movement-driven buzzes while shaking the developed print). Full
-      // intensity keeps the duty cycle solid so it stays strong throughout.
-      playHaptic("ejectMotor", { intensity: 1 });
 
       timeoutRef.current = window.setTimeout(() => {
         onShoot();

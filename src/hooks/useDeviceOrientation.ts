@@ -26,7 +26,16 @@ const SENSOR_PROGRESS_COOLDOWN_MS = 150;
 // progress after the user has stopped (the "it thinks it's still moving" feel).
 const SHAKE_ENERGY_DECAY = 0.8;
 
-export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
+// Fired on every meaningful shake frame (independent of develop progress) so a
+// consumer can buzz the phone whenever it's physically moved.
+export type MotionShakeHandler = (force: number) => void;
+
+const SHAKE_HAPTIC_COOLDOWN_MS = 70;
+
+export function useDeviceOrientation(
+  onMotionProgress?: MotionProgressHandler,
+  onShake?: MotionShakeHandler,
+) {
   // Orientation lives in a ref, not state: deviceorientation fires ~60×/sec and
   // storing it in state re-rendered the whole tree every frame while tilting,
   // which is what made the develop/shake screen stutter. Consumers read the ref
@@ -39,6 +48,13 @@ export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
   const lastGravityAccelerationRef = useRef<DeviceAcceleration | null>(null);
   const pendingShakeEnergyRef = useRef(0);
   const lastSensorProgressAtRef = useRef(0);
+  const lastShakeHapticAtRef = useRef(0);
+  // Held in a ref so an unstable onShake identity doesn't re-bind the motion
+  // listeners on every render.
+  const onShakeRef = useRef(onShake);
+  useEffect(() => {
+    onShakeRef.current = onShake;
+  }, [onShake]);
   const isSupported = permissionState !== "unsupported";
 
   const requestAccess = useCallback(
@@ -74,6 +90,14 @@ export function useDeviceOrientation(onMotionProgress?: MotionProgressHandler) {
         // the print stops developing/wobbling promptly once the user stops.
         pendingShakeEnergyRef.current *= SHAKE_ENERGY_DECAY;
         return;
+      }
+
+      // Buzz on the raw shake itself — independent of develop progress — so the
+      // phone always vibrates when physically moved (throttled so it reads as a
+      // steady tick rather than a constant motor).
+      if (event.timeStamp - lastShakeHapticAtRef.current > SHAKE_HAPTIC_COOLDOWN_MS) {
+        lastShakeHapticAtRef.current = event.timeStamp;
+        onShakeRef.current?.(Math.min(signal.energy / SHAKE_ENERGY_STEP, 1.5));
       }
 
       pendingShakeEnergyRef.current =
