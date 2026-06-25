@@ -46,9 +46,9 @@ export const PHOTO_FONTS: ReadonlyArray<{
     css: 'var(--font-family-indie_flower, "Indie Flower"), cursive',
   },
   {
-    id: "serif",
-    label: "Serif",
-    css: '"Libertinus Serif Display", Georgia, "Times New Roman", serif',
+    id: "shadows",
+    label: "Shadows",
+    css: 'var(--font-family-shadows, "Shadows Into Light"), cursive',
   },
   {
     id: "commit",

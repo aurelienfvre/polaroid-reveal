@@ -18,10 +18,11 @@
   --space-5: 1.5rem;
   --space-6: 2rem;
   --space-7: 3rem;
-  --font-family-bricolage: bricolage_grotesque;
-  --font-family-commit: commit_mono;
-  --font-family-indie-flower: indie_flower;
+  --font-family-bricolage: var(--font-bricolage), "Bricolage Grotesque", system-ui, sans-serif;
+  --font-family-commit: var(--font-commit), "Commit Mono", ui-monospace, monospace;
+  --font-family-indie-flower: var(--font-indie), "Indie Flower", cursive;
   --font-family-indie_flower: var(--font-family-indie-flower);
+  --font-family-shadows: var(--font-shadows), "Shadows Into Light", cursive;
   --color-paper: var(--grey-500);
   --color-paper-soft: var(--grey-50);
   --color-ink: var(--grey-900);

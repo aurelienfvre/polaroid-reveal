@@ -1,7 +1,7 @@
 import type { Dispatch, PointerEvent, RefObject, SetStateAction } from "react";
 import { DevelopStage } from "@/features/reveal/components/DevelopStage";
-import { MemoryCanvas } from "@/features/reveal/components/MemoryCanvas";
 import { PersonalizeStage } from "@/features/reveal/components/PersonalizeStage";
+import { PlacementBoard } from "@/features/reveal/components/PlacementBoard";
 import { PolaroidCamera } from "@/features/reveal/components/PolaroidCamera";
 import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
 import type {
@@ -58,13 +58,8 @@ export function ExperienceStage(props: Props) {
 
   if (props.phase === "canvas") {
     return (
-      <MemoryCanvas
+      <PlacementBoard
         customizations={props.customizations}
-        draggingId={props.draggingId}
-        onPointerCancel={props.onCanvasPointerCancel}
-        onPointerDown={props.onCanvasPointerDown}
-        onPointerMove={props.onCanvasPointerMove}
-        onPointerUp={props.onCanvasPointerUp}
         photos={props.photos}
       />
     );

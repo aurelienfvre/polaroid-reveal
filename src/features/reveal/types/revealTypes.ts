@@ -15,7 +15,7 @@ export type PhotoFilterId =
 
 export type PhotoTextureId = "none" | "grain" | "dust";
 
-export type PhotoFontId = "bricolage" | "commit" | "indie" | "serif";
+export type PhotoFontId = "bricolage" | "commit" | "indie" | "shadows";
 
 export type PhotoCustomization = {
   filterId: PhotoFilterId;
@@ -64,4 +64,46 @@ export type PanelCopy = {
   eyebrow: string;
   title: string;
   intro: string;
+};
+
+export type BoardTool = "tape" | "sticker" | "text" | "pen" | "color" | "add";
+
+export type BoardItemKind = "photo" | "sticker" | "tape" | "text" | "shape";
+
+export type BoardShape = "rect" | "circle";
+
+/** A free object dropped on the placement board. Coordinates are board-space
+ * (the pre-transform surface), anchored at the item centre. */
+export type BoardItem = {
+  id: string;
+  kind: BoardItemKind;
+  x: number;
+  y: number;
+  rotate: number;
+  scale: number;
+  zIndex: number;
+  /** Photo items reference the source memory so filters/captions stay in sync. */
+  memoryId?: string;
+  imageUrl?: string;
+  /** Sticker / tape decoration asset. */
+  src?: string;
+  /** Text content for text items. */
+  text?: string;
+  fontId?: PhotoFontId;
+  /** Fill colour for text and shapes. */
+  color?: string;
+  shape?: BoardShape;
+};
+
+export type BoardViewport = {
+  x: number;
+  y: number;
+  scale: number;
+};
+
+export type BoardBackground = {
+  id: string;
+  label: string;
+  /** CSS background value applied to the board surface. */
+  css: string;
 };

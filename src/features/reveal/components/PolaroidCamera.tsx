@@ -45,8 +45,9 @@ export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce =
     startTimeoutRef.current = window.setTimeout(() => {
       setIsEjecting(true);
       // One continuous motor whir for the whole ejection (distinct from the
-      // movement-driven buzzes while shaking the developed print).
-      playHaptic("ejectMotor", { intensity: 0.9 });
+      // movement-driven buzzes while shaking the developed print). Full
+      // intensity keeps the duty cycle solid so it stays strong throughout.
+      playHaptic("ejectMotor", { intensity: 1 });
 
       timeoutRef.current = window.setTimeout(() => {
         onShoot();

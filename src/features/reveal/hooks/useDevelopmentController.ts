@@ -52,10 +52,12 @@ export function useDevelopmentController({
 
       const now = performance.now();
 
-      if (now - lastShakeHapticAtRef.current > 160) {
+      // Fire often enough to feel like the print is buzzing in your hand as you
+      // shake it, and keep each pulse strong (intensity drives the duty cycle).
+      if (now - lastShakeHapticAtRef.current > 90) {
         lastShakeHapticAtRef.current = now;
         triggerHaptic("shake", {
-          intensity: Math.min(0.48 + impulse.force * 0.18, 0.92),
+          intensity: Math.min(0.85 + impulse.force * 0.15, 1),
         });
       }
     },
