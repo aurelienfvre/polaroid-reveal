@@ -8,12 +8,13 @@ import type { CanvasPhoto, ExperiencePhase } from "@/features/reveal/types/revea
 import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 
 type Params = {
-  activeMemory: Memory;
+  activeMemory: Memory | null;
   canChangePhoto: boolean;
   deviceProfile: DeviceProfile;
   getNextCanvasZIndex: () => number;
   isDailyComplete: boolean;
   isRevealed: boolean;
+  memories: Memory[];
   motionPermission: string;
   phase: ExperiencePhase;
   placedPhotos: CanvasPhoto[];
@@ -34,6 +35,10 @@ export function usePhotoFlowActions(params: Params) {
   const triggerHaptic = usePolaroidHaptics();
 
   const handleCameraShoot = () => {
+    if (!params.activeMemory || params.memories.length === 0) {
+      return;
+    }
+
     if (params.isDailyComplete) {
       params.setPhase("canvas");
       return;
@@ -59,11 +64,18 @@ export function usePhotoFlowActions(params: Params) {
     triggerHaptic("snap", { intensity: 0.32 });
   };
 
-  const placeCurrentPhoto = (preferredMemory = params.activeMemory) => {
+  const placeCurrentPhoto = (preferredMemory?: Memory | null) => {
+    const sourceMemory = preferredMemory ?? params.activeMemory;
+
+    if (!sourceMemory) {
+      return;
+    }
+
     const nextZIndex = params.getNextCanvasZIndex();
     params.setPlacedPhotos((photos) => {
       const memory = getPlaceableMemory(
-        preferredMemory,
+        params.memories,
+        sourceMemory,
         photos,
         params.rerolledPhotoIds,
       );
@@ -82,44 +94,55 @@ export function usePhotoFlowActions(params: Params) {
   // Swap the developed print for another random memory without leaving the
   // develop view — it stays revealed, just shows a different shot.
   const handleChangePhoto = () => {
-    if (!params.isRevealed || !params.canChangePhoto) {
+    const activeMemory = params.activeMemory;
+
+    if (!activeMemory || !params.isRevealed || !params.canChangePhoto) {
       return;
     }
 
     const rejectedPhotoIds = Array.from(new Set([
       ...params.rerolledPhotoIds,
-      params.activeMemory.id,
+      activeMemory.id,
     ]));
 
     params.setChangeCount((count) => count + 1);
     params.setRerolledPhotoIds(rejectedPhotoIds);
     params.setActiveIndex((currentIndex) => (
-      pickNextMemoryIndex(currentIndex, params.placedPhotos, rejectedPhotoIds)
+      pickNextMemoryIndex(
+        params.memories,
+        currentIndex,
+        params.placedPhotos,
+        rejectedPhotoIds,
+      )
     ));
     triggerHaptic("snap", { intensity: 0.3 });
   };
 
   // Keep the developed print and send a fresh one out of the camera.
   const handleTakeNewPhoto = () => {
-    if (!params.isRevealed) {
+    const activeMemory = params.activeMemory;
+
+    if (!activeMemory || !params.isRevealed) {
       return;
     }
 
     const placedMemory = getPlaceableMemory(
-      params.activeMemory,
+      params.memories,
+      activeMemory,
       params.placedPhotos,
       params.rerolledPhotoIds,
     );
-    placeCurrentPhoto(placedMemory ?? params.activeMemory);
+    placeCurrentPhoto(placedMemory ?? activeMemory);
     params.resetPointerTilt();
     params.resetDevelopmentState();
     params.setPhotoFocused(false);
     params.setActiveIndex((currentIndex) => (
       pickNextMemoryIndex(
+        params.memories,
         currentIndex,
         [
           ...params.placedPhotos,
-          placedMemory ?? params.activeMemory,
+          placedMemory ?? activeMemory,
         ],
         params.rerolledPhotoIds,
       )
@@ -132,7 +155,7 @@ export function usePhotoFlowActions(params: Params) {
 
   // Finish the daily set and move on to personalising the prints.
   const handleShowMyPhotos = () => {
-    if (!params.isRevealed) {
+    if (!params.activeMemory || !params.isRevealed) {
       return;
     }
 
@@ -150,6 +173,10 @@ export function usePhotoFlowActions(params: Params) {
   };
 
   const handleShare = async () => {
+    if (!params.activeMemory) {
+      return;
+    }
+
     try {
       await exportPolaroidImage(params.activeMemory);
     } catch {

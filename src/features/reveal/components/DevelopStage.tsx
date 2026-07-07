@@ -1,12 +1,12 @@
 import type { RefObject } from "react";
-import { MEMORIES } from "@/features/reveal/data/memories";
 import { DevelopControls } from "@/features/reveal/components/DevelopControls";
 import { SkipIcon } from "@/features/reveal/components/PersonalizeIcons";
 import { PolaroidCard } from "@/features/reveal/components/PolaroidCard";
+import type { Memory } from "@/features/reveal/data/memories";
 import type { TiltStyle } from "@/features/reveal/types/revealTypes";
 
 type Props = {
-  activeIndex: number;
+  activeMemory: Memory;
   changesRemaining: number;
   isLastTirage: boolean;
   isPhotoFocused: boolean;
@@ -22,7 +22,7 @@ type Props = {
 };
 
 export function DevelopStage({
-  activeIndex,
+  activeMemory,
   changesRemaining,
   isLastTirage,
   isPhotoFocused,
@@ -36,8 +36,6 @@ export function DevelopStage({
   onTakeNewPhoto,
   tiltStyle,
 }: Props) {
-  const activeMemory = MEMORIES[activeIndex];
-
   return (
     <div className="c-develop" aria-live="polite">
       {isPhotoFocused && <div className="c-develop__backdrop" aria-hidden="true" />}

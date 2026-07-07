@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
-import { MEMORIES } from "@/features/reveal/data/memories";
+import type { Memory } from "@/features/reveal/data/memories";
+import { getRandomMemoryIndex } from "@/features/reveal/lib/photoDraw";
 import type {
   CanvasPhoto,
   ExperiencePhase,
@@ -7,6 +8,7 @@ import type {
 import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 
 type Params = {
+  memories: Memory[];
   placedPhotos: CanvasPhoto[];
   resetDevelopmentState: () => void;
   resetPointerTilt: () => void;
@@ -16,6 +18,7 @@ type Params = {
 };
 
 export function useSessionActions({
+  memories,
   placedPhotos,
   resetDevelopmentState,
   resetPointerTilt,
@@ -26,9 +29,13 @@ export function useSessionActions({
   const triggerHaptic = usePolaroidHaptics();
 
   const handleReroll = () => {
+    if (memories.length === 0) {
+      return;
+    }
+
     resetPointerTilt();
     resetDevelopmentState();
-    setActiveIndex((currentIndex) => (currentIndex + 1) % MEMORIES.length);
+    setActiveIndex((currentIndex) => (currentIndex + 1) % memories.length);
     setPhase("camera");
     triggerHaptic("snap", { intensity: 0.42 });
   };
@@ -43,7 +50,7 @@ export function useSessionActions({
     resetPointerTilt();
     resetDevelopmentState();
     setPlacedPhotos([]);
-    setActiveIndex(Math.floor(Math.random() * MEMORIES.length));
+    setActiveIndex(getRandomMemoryIndex(memories));
     setPhase("camera");
   };
 

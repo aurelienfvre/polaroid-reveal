@@ -2,12 +2,21 @@
 
 import { useRef } from "react";
 import { ExperienceStage } from "@/features/reveal/components/ExperienceStage";
+import type { Memory } from "@/features/reveal/data/memories";
 import { useRevealExperienceModel } from "@/features/reveal/hooks/useRevealExperienceModel";
 
-export function RevealExperience() {
+type Props = {
+  initialMemories: Memory[];
+};
+
+export function RevealExperience({ initialMemories }: Props) {
   const stageRef = useRef<HTMLDivElement>(null);
   const polaroidMotionRef = useRef<HTMLButtonElement>(null);
-  const model = useRevealExperienceModel(stageRef, polaroidMotionRef);
+  const model = useRevealExperienceModel(
+    stageRef,
+    polaroidMotionRef,
+    initialMemories,
+  );
 
   return (
     <main className={`p-home p-home--is-${model.phase}`}>

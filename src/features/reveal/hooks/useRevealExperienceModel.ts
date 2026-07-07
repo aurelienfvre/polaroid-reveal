@@ -1,5 +1,6 @@
 import type { RefObject } from "react";
 import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
+import type { Memory } from "@/features/reveal/data/memories";
 import { useCanvasDrag } from "@/features/reveal/hooks/useCanvasDrag";
 import { useDevelopmentController } from "@/features/reveal/hooks/useDevelopmentController";
 import { usePhotoFlowActions } from "@/features/reveal/hooks/usePhotoFlowActions";
@@ -15,8 +16,9 @@ import { usePointerTilt } from "@/hooks/usePointerTilt";
 export function useRevealExperienceModel(
   stageRef: RefObject<HTMLDivElement | null>,
   polaroidMotionRef: RefObject<HTMLElement | null>,
+  initialMemories: Memory[],
 ) {
-  const flow = useRevealFlowState();
+  const flow = useRevealFlowState(initialMemories);
   const cameraModel = useRandomPolaroidCameraModel();
   const deviceProfile = useDeviceProfile();
   const development = useDevelopmentController({
@@ -74,11 +76,12 @@ export function useRevealExperienceModel(
     phase: flow.phase,
     stage: {
       ...drag,
-      activeIndex: flow.activeIndex,
+      activeMemory: flow.activeMemory,
       cameraModel,
       canChangePhoto: flow.canChangePhoto,
       changesRemaining: flow.changesRemaining,
       customizations: flow.photoCustomizations,
+      hasPhotos: flow.isPhotoLibraryReady,
       isLastTirage: flow.isLastTirage,
       isPhotoFocused: flow.isPhotoFocused,
       isRevealed: development.isRevealed,

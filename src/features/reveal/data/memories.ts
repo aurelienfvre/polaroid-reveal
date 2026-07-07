@@ -10,25 +10,8 @@ export type Memory = {
   tone: MemoryTone;
 };
 
-const LOCAL_PHOTO_FILES = [
-  "aurel_gates.png",
-  "le_luctecteur.png",
-  "shindig.png",
-  "remi_barthez.png",
-  "axelle_68.png",
-  "halloween_dig.png",
-  "manu-vs-manu.png",
-  "thierry_rigel.png",
-  "remih.png",
-  "muppet.png",
-  "manu_remi.png",
-  "max-mat_apple.png",
-  "rigelbappe.png",
-  "christophe-ma-nez.png",
-  "remi_luc.png",
-  "dark_maxnu.png",
-  "maxkennedy.png",
-] as const;
+export const PHOTO_DIRECTORY = "/images/photos";
+export const PHOTO_FILE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"] as const;
 
 const MEMORY_TONES: MemoryTone[] = ["rose", "cyan", "amber"];
 
@@ -38,15 +21,17 @@ const MEMORY_CAPTIONS = [
   "Quelques secondes epinglables, assez floues pour respirer.",
 ];
 
-export const MEMORIES: Memory[] = LOCAL_PHOTO_FILES.map((fileName, index) => ({
-  id: getPhotoId(fileName),
-  title: getPhotoTitle(fileName),
-  dateLabel: "Pellicule locale",
-  location: "public/images/photos",
-  caption: MEMORY_CAPTIONS[index % MEMORY_CAPTIONS.length],
-  imageUrl: `/images/photos/${fileName}`,
-  tone: MEMORY_TONES[index % MEMORY_TONES.length],
-}));
+export function createMemoriesFromPhotoFiles(fileNames: string[]): Memory[] {
+  return fileNames.map((fileName, index) => ({
+    id: getPhotoId(fileName),
+    title: getPhotoTitle(fileName),
+    dateLabel: "Pellicule locale",
+    location: "public/images/photos",
+    caption: MEMORY_CAPTIONS[index % MEMORY_CAPTIONS.length],
+    imageUrl: `${PHOTO_DIRECTORY}/${encodeURIComponent(fileName)}`,
+    tone: MEMORY_TONES[index % MEMORY_TONES.length],
+  }));
+}
 
 export const REVEAL_FLOW = [
   "Import bibliotheque",
@@ -63,7 +48,7 @@ function getPhotoId(fileName: string) {
 
 function getPhotoTitle(fileName: string) {
   return getPhotoId(fileName)
-    .split(/[-_]+/)
+    .split(/[-_\s]+/)
     .filter(Boolean)
     .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
     .join(" ");

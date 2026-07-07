@@ -11,13 +11,20 @@ const EJECT_DURATION = 2100;
 const SHOOT_DELAY = 520;
 
 type Props = {
+  isDisabled?: boolean;
   isPassive?: boolean;
   model: PolaroidCameraModel;
   onShoot?: () => void;
   shootNonce?: number;
 };
 
-export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce = 0 }: Props) {
+export function PolaroidCamera({
+  isDisabled = false,
+  isPassive = false,
+  model,
+  onShoot,
+  shootNonce = 0,
+}: Props) {
   const [isEjecting, setIsEjecting] = useState(false);
   const [hideActionButton, setHideActionButton] = useState(false);
   const isEjectingRef = useRef(false);
@@ -31,9 +38,10 @@ export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce =
     isPassive ? "c-polaroid-camera--is-passive" : "",
     isEjecting ? "c-polaroid-camera--is-ejecting" : "",
   ].filter(Boolean).join(" ");
+  const isActionDisabled = isDisabled || isEjecting || isPassive || hideActionButton;
 
   const handleShoot = ({ hideButton = false } = {}) => {
-    if (isPassive || isEjectingRef.current || !onShoot) {
+    if (isDisabled || isPassive || isEjectingRef.current || !onShoot) {
       return;
     }
 
@@ -65,7 +73,7 @@ export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce =
       return;
     }
     lastNonceRef.current = shootNonce;
-    if (!isPassive) {
+    if (!isDisabled && !isPassive) {
       handleShoot({ hideButton: true });
     }
     // handleShoot is stable enough for this fire-and-forget trigger.
@@ -93,13 +101,14 @@ export function PolaroidCamera({ isPassive = false, model, onShoot, shootNonce =
           className="c-polaroid-camera__camera-hitbox"
           type="button"
           onClick={() => handleShoot()}
-          disabled={isEjecting || isPassive || hideActionButton}
+          disabled={isActionDisabled}
           aria-label="Take a photo"
         />
       </div>
       {!isPassive && !isEjecting && !hideActionButton && (
         <PolaroidButton
           onClick={() => handleShoot()}
+          disabled={isDisabled}
           aria-label="Take a photo"
         >
           SNAP IT

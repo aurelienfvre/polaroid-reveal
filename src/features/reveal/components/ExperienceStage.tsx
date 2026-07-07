@@ -3,6 +3,7 @@ import { DevelopStage } from "@/features/reveal/components/DevelopStage";
 import { PersonalizeStage } from "@/features/reveal/components/PersonalizeStage";
 import { PlacementBoard } from "@/features/reveal/components/PlacementBoard";
 import { PolaroidCamera } from "@/features/reveal/components/PolaroidCamera";
+import type { Memory } from "@/features/reveal/data/memories";
 import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
 import type {
   CanvasPhoto,
@@ -12,11 +13,12 @@ import type {
 } from "@/features/reveal/types/revealTypes";
 
 type Props = {
-  activeIndex: number;
+  activeMemory: Memory | null;
   cameraModel: PolaroidCameraModel;
   changesRemaining: number;
   customizations: Record<string, PhotoCustomization>;
   draggingId: string | null;
+  hasPhotos: boolean;
   isLastTirage: boolean;
   isPhotoFocused: boolean;
   isRevealed: boolean;
@@ -68,14 +70,15 @@ export function ExperienceStage(props: Props) {
   return (
     <div className="c-reveal-board">
       <PolaroidCamera
+        isDisabled={!props.hasPhotos}
         isPassive={props.phase === "develop"}
         model={props.cameraModel}
         onShoot={props.onShoot}
         shootNonce={props.shootNonce}
       />
-      {props.phase === "develop" && (
+      {props.phase === "develop" && props.activeMemory && (
         <DevelopStage
-          activeIndex={props.activeIndex}
+          activeMemory={props.activeMemory}
           changesRemaining={props.changesRemaining}
           isLastTirage={props.isLastTirage}
           isPhotoFocused={props.isPhotoFocused}
