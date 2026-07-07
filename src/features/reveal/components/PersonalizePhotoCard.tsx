@@ -31,8 +31,8 @@ export function PersonalizePhotoCard({
   const editorRef = useRef<HTMLSpanElement>(null);
   const imageStyle = {
     filter: getFilterCss(customization.filterId),
-    backgroundImage: `url("${photo.imageUrl}")`,
-  } as CSSProperties;
+    "--photo-image-url": `url("${photo.imageUrl}")`,
+  } as CSSProperties & { "--photo-image-url": string };
   const grainStyle = {
     opacity: getTextureOpacity(
       customization.textureId,

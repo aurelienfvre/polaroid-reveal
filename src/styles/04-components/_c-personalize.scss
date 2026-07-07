@@ -63,12 +63,38 @@
   width: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  background: var(--grey-900) center / cover no-repeat;
+  background: var(--grey-900);
+  isolation: isolate;
+}
+
+.c-perso-card__image::before,
+.c-perso-card__image::after {
+  position: absolute;
+  inset: 0;
+  background-image: var(--photo-image-url);
+  background-position: center;
+  background-repeat: no-repeat;
+  content: "";
+}
+
+.c-perso-card__image::before {
+  inset: -10%;
+  background-size: cover;
+  filter: blur(12px) saturate(0.85) brightness(0.72);
+  opacity: 0.9;
+  transform: scale(1.04);
+  z-index: 0;
+}
+
+.c-perso-card__image::after {
+  background-size: contain;
+  z-index: 1;
 }
 
 .c-perso-card__grain {
   position: absolute;
   inset: 0;
+  z-index: 2;
   mix-blend-mode: overlay;
   pointer-events: none;
 }

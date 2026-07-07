@@ -1,8 +1,8 @@
 import type { Dispatch, SetStateAction } from "react";
-import { MEMORIES } from "@/features/reveal/data/memories";
 import type { Memory } from "@/features/reveal/data/memories";
 import { getCanvasPhoto } from "@/features/reveal/lib/canvasPhotos";
 import { exportPolaroidImage } from "@/features/reveal/lib/exportPolaroidImage";
+import { getPlaceableMemory, pickNextMemoryIndex } from "@/features/reveal/lib/photoDraw";
 import type { DeviceProfile } from "@/hooks/useDeviceProfile";
 import type { CanvasPhoto, ExperiencePhase } from "@/features/reveal/types/revealTypes";
 import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
@@ -17,6 +17,7 @@ type Params = {
   motionPermission: string;
   phase: ExperiencePhase;
   placedPhotos: CanvasPhoto[];
+  rerolledPhotoIds: string[];
   requestMotionAccess: () => Promise<boolean>;
   resetDevelopmentState: () => void;
   resetPointerTilt: () => void;
@@ -25,6 +26,7 @@ type Params = {
   setPhase: Dispatch<SetStateAction<ExperiencePhase>>;
   setPhotoFocused: Dispatch<SetStateAction<boolean>>;
   setPlacedPhotos: Dispatch<SetStateAction<CanvasPhoto[]>>;
+  setRerolledPhotoIds: Dispatch<SetStateAction<string[]>>;
   setShootNonce: Dispatch<SetStateAction<number>>;
 };
 
@@ -60,7 +62,11 @@ export function usePhotoFlowActions(params: Params) {
   const placeCurrentPhoto = (preferredMemory = params.activeMemory) => {
     const nextZIndex = params.getNextCanvasZIndex();
     params.setPlacedPhotos((photos) => {
-      const memory = getPlaceableMemory(preferredMemory, photos);
+      const memory = getPlaceableMemory(
+        preferredMemory,
+        photos,
+        params.rerolledPhotoIds,
+      );
 
       if (!memory) {
         return photos;
@@ -80,9 +86,15 @@ export function usePhotoFlowActions(params: Params) {
       return;
     }
 
+    const rejectedPhotoIds = Array.from(new Set([
+      ...params.rerolledPhotoIds,
+      params.activeMemory.id,
+    ]));
+
     params.setChangeCount((count) => count + 1);
+    params.setRerolledPhotoIds(rejectedPhotoIds);
     params.setActiveIndex((currentIndex) => (
-      pickUnplacedIndex(currentIndex, params.placedPhotos)
+      pickNextMemoryIndex(currentIndex, params.placedPhotos, rejectedPhotoIds)
     ));
     triggerHaptic("snap", { intensity: 0.3 });
   };
@@ -93,16 +105,24 @@ export function usePhotoFlowActions(params: Params) {
       return;
     }
 
-    const placedMemory = getPlaceableMemory(params.activeMemory, params.placedPhotos);
+    const placedMemory = getPlaceableMemory(
+      params.activeMemory,
+      params.placedPhotos,
+      params.rerolledPhotoIds,
+    );
     placeCurrentPhoto(placedMemory ?? params.activeMemory);
     params.resetPointerTilt();
     params.resetDevelopmentState();
     params.setPhotoFocused(false);
     params.setActiveIndex((currentIndex) => (
-      pickUnplacedIndex(currentIndex, [
-        ...params.placedPhotos,
-        placedMemory ?? params.activeMemory,
-      ])
+      pickNextMemoryIndex(
+        currentIndex,
+        [
+          ...params.placedPhotos,
+          placedMemory ?? params.activeMemory,
+        ],
+        params.rerolledPhotoIds,
+      )
     ));
     triggerHaptic("snap", { intensity: 0.5 });
     params.setPhase("camera");
@@ -146,33 +166,4 @@ export function usePhotoFlowActions(params: Params) {
     handleTakeNewPhoto,
     handleValidatePersonalization,
   };
-}
-
-function pickUnplacedIndex(
-  currentIndex: number,
-  placedPhotos: ReadonlyArray<{ id: string }>,
-) {
-  const placedIds = new Set(placedPhotos.map((photo) => photo.id));
-  const candidates = MEMORIES
-    .map((memory, index) => ({ id: memory.id, index }))
-    .filter((memory) => memory.index !== currentIndex && !placedIds.has(memory.id));
-
-  if (candidates.length === 0) {
-    return currentIndex;
-  }
-
-  return candidates[Math.floor(Math.random() * candidates.length)].index;
-}
-
-function getPlaceableMemory(
-  activeMemory: Memory,
-  placedPhotos: ReadonlyArray<{ id: string }>,
-) {
-  const placedIds = new Set(placedPhotos.map((photo) => photo.id));
-
-  if (!placedIds.has(activeMemory.id)) {
-    return activeMemory;
-  }
-
-  return MEMORIES.find((memory) => !placedIds.has(memory.id));
 }

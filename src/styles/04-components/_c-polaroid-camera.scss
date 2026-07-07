@@ -39,6 +39,12 @@
   height: 90dvh;
 }
 
+.c-polaroid-camera--model-luc .c-polaroid-camera__stage,
+.c-polaroid-camera--model-manu .c-polaroid-camera__stage,
+.c-polaroid-camera--model-remi .c-polaroid-camera__stage {
+  height: 88dvh;
+}
+
 .c-polaroid-camera__scene {
   position: relative;
   z-index: 2;

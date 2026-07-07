@@ -14,11 +14,31 @@
 .c-polaroid-card__photo {
   position: absolute;
   inset: 0;
-  background: var(--memory-image-url);
-  background-position: center;
-  background-size: cover;
+  overflow: hidden;
   opacity: var(--reveal-progress);
   transition: opacity 260ms ease;
+}
+
+.c-polaroid-card__photo::before,
+.c-polaroid-card__photo::after {
+  position: absolute;
+  inset: 0;
+  background-image: var(--memory-image-url);
+  background-position: center;
+  background-repeat: no-repeat;
+  content: "";
+}
+
+.c-polaroid-card__photo::before {
+  inset: -10%;
+  background-size: cover;
+  filter: blur(12px) saturate(0.85) brightness(0.72);
+  opacity: 0.9;
+  transform: scale(1.04);
+}
+
+.c-polaroid-card__photo::after {
+  background-size: contain;
 }
 
 .c-polaroid-card--is-revealed .c-polaroid-card__photo {

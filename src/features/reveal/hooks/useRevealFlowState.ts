@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MEMORIES } from "@/features/reveal/data/memories";
 import { DAILY_REVEAL_LIMIT, MAX_PHOTO_CHANGES } from "@/features/reveal/lib/canvasPhotos";
+import { getRandomMemoryIndex } from "@/features/reveal/lib/photoDraw";
 import type {
   CanvasPhoto,
   ExperiencePhase,
@@ -17,6 +18,7 @@ export function useRevealFlowState() {
   const [isPhotoFocused, setPhotoFocused] = useState(false);
   const [shootNonce, setShootNonce] = useState(0);
   const [changeCount, setChangeCount] = useState(0);
+  const [rerolledPhotoIds, setRerolledPhotoIds] = useState<string[]>([]);
   const highestCanvasZIndexRef = useRef(10);
   const isPhotoFocusedRef = useRef(false);
   const phaseRef = useRef<ExperiencePhase>("camera");
@@ -50,17 +52,15 @@ export function useRevealFlowState() {
     phaseRef,
     photoCustomizations,
     placedPhotos,
+    rerolledPhotoIds,
     setActiveIndex,
     setChangeCount,
     setPhase,
     setPhotoCustomizations,
     setPhotoFocused,
     setPlacedPhotos,
+    setRerolledPhotoIds,
     setShootNonce,
     shootNonce,
   };
-}
-
-function getRandomMemoryIndex() {
-  return Math.floor(Math.random() * MEMORIES.length);
 }

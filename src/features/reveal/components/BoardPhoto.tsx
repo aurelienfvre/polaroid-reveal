@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import {
   getFilterCss,
   getFontCss,
@@ -17,15 +18,16 @@ export function BoardPhoto({ imageUrl, customization }: Props) {
     ? getTextureOpacity(customization.textureId, customization.textureIntensity)
     : 0;
   const caption = customization?.text?.trim();
+  const imageStyle = {
+    "--photo-image-url": imageUrl ? `url("${imageUrl}")` : "none",
+    filter: customization ? getFilterCss(customization.filterId) : undefined,
+  } as CSSProperties & { "--photo-image-url": string };
 
   return (
     <div className="c-board-photo">
       <span
         className="c-board-photo__image"
-        style={{
-          backgroundImage: imageUrl ? `url("${imageUrl}")` : undefined,
-          filter: customization ? getFilterCss(customization.filterId) : undefined,
-        }}
+        style={imageStyle}
       >
         {grainOpacity > 0 && (
           <span

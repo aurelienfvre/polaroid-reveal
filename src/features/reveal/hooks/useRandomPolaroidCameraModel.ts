@@ -1,13 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 import {
+  POLAROID_CAMERA_MODELS,
   getRandomPolaroidCameraModel,
   type PolaroidCameraModel,
 } from "@/features/reveal/data/polaroidCameraModels";
 
 export function useRandomPolaroidCameraModel() {
-  const [model] = useState<PolaroidCameraModel>(getRandomPolaroidCameraModel);
+  return useSyncExternalStore(subscribe, getClientModel, getServerModel);
+}
 
-  return model;
+let clientModel: PolaroidCameraModel | null = null;
+
+function getClientModel() {
+  clientModel ??= getRandomPolaroidCameraModel();
+
+  return clientModel;
+}
+
+function getServerModel() {
+  return POLAROID_CAMERA_MODELS[0];
+}
+
+function subscribe() {
+  return () => {};
 }

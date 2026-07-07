@@ -11,6 +11,12 @@ type CameraSceneState = {
   isPassive: boolean;
 };
 
+type EjectedPhotoSize = {
+  height: number;
+  scale: number;
+  width: number;
+};
+
 /** Total time (ms) for the print to slide fully out of the slot. */
 const EJECT_DURATION = 1800;
 /** Print dimensions in scene units — sized to stay fully in the base frame. */
@@ -42,11 +48,12 @@ export function usePolaroidCameraScene(
     const renderer = createRenderer(canvasRef.current);
     const root = new THREE.Group();
     const cameraGroup = new THREE.Group();
+    const ejectedPhotoSize = getEjectedPhotoSize(model);
     // Mask the print at the slot mouth so only the part that has actually been
     // pushed out is visible — the rest reads as still inside the camera. This is
     // what makes the print look like it slides out, not a crop of the photo.
     const slotMask = new THREE.Plane(new THREE.Vector3(0, -1, 0), model.eject3d.slotY);
-    const ejectedPhoto = createEjectedPhoto(slotMask);
+    const ejectedPhoto = createEjectedPhoto(slotMask, ejectedPhotoSize);
     let frameId = 0;
     let ejectionStartedAt: number | null = null;
     let isDisposed = false;
@@ -80,6 +87,7 @@ export function usePolaroidCameraScene(
       ejectionStartedAt = animateEjectedPhoto({
         model,
         photo: ejectedPhoto,
+        photoSize: ejectedPhotoSize,
         startedAt: ejectionStartedAt,
         state: currentState,
       });
@@ -161,10 +169,16 @@ function normalizeModel(object: THREE.Object3D, model: PolaroidCameraModel) {
  * border. Both surfaces are masked at the slot so the part still inside the
  * camera stays hidden while the print is fed out.
  */
-function createEjectedPhoto(slotMask: THREE.Plane) {
+function getEjectedPhotoSize(model: PolaroidCameraModel): EjectedPhotoSize {
+  const scale = model.eject3d.printScale ?? 1;
+
+  return { height: PHOTO_HEIGHT * scale, scale, width: PHOTO_WIDTH * scale };
+}
+
+function createEjectedPhoto(slotMask: THREE.Plane, size: EjectedPhotoSize) {
   const group = new THREE.Group();
   const paper = new THREE.Mesh(
-    new THREE.PlaneGeometry(PHOTO_WIDTH, PHOTO_HEIGHT),
+    new THREE.PlaneGeometry(size.width, size.height),
     new THREE.MeshStandardMaterial({
       clippingPlanes: [slotMask],
       color: 0xfffdf7,
@@ -175,7 +189,7 @@ function createEjectedPhoto(slotMask: THREE.Plane) {
       transparent: true,
     }),
   );
-  const imageSize = PHOTO_WIDTH - 0.28;
+  const imageSize = size.width - 0.28 * size.scale;
   const image = new THREE.Mesh(
     new THREE.PlaneGeometry(imageSize, imageSize),
     new THREE.MeshStandardMaterial({
@@ -190,7 +204,7 @@ function createEjectedPhoto(slotMask: THREE.Plane) {
   );
 
   // Push the image up so the wide developing border sits along the bottom.
-  image.position.set(0, PHOTO_HEIGHT / 2 - imageSize / 2 - 0.14, 0.012);
+  image.position.set(0, size.height / 2 - imageSize / 2 - 0.14 * size.scale, 0.012);
   paper.renderOrder = 30;
   image.renderOrder = 31;
   group.renderOrder = 30;
@@ -203,11 +217,13 @@ function createEjectedPhoto(slotMask: THREE.Plane) {
 function animateEjectedPhoto({
   model,
   photo,
+  photoSize,
   startedAt,
   state,
 }: {
   model: PolaroidCameraModel;
   photo: THREE.Group;
+  photoSize: EjectedPhotoSize;
   startedAt: number | null;
   state: CameraSceneState;
 }) {
@@ -232,8 +248,8 @@ function animateEjectedPhoto({
   // inside (entirely above the slot mask, so nothing shows) and travels down by
   // its whole height plus a little, so you watch it emerge edge-first and hang.
   const slotY = model.eject3d.slotY;
-  const hiddenCenterY = slotY + PHOTO_HEIGHT / 2;
-  const outCenterY = slotY - PHOTO_HEIGHT / 2 - 0.12;
+  const hiddenCenterY = slotY + photoSize.height / 2;
+  const outCenterY = slotY - photoSize.height / 2 - 0.12 * photoSize.scale;
   const centerY = THREE.MathUtils.lerp(hiddenCenterY, outCenterY, progress);
   // A subtle settle wobble as the motor pushes it out, fading as it finishes.
   const wobble = Math.sin(rawProgress * Math.PI * 2.4) * (1 - rawProgress) * 0.015;
