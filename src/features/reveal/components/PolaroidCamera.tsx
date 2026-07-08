@@ -7,6 +7,8 @@ import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraM
 import { usePolaroidHaptics } from "@/lib/haptics/usePolaroidHaptics";
 
 const EJECT_DURATION = 2100;
+const MODEL_PRESS_DURATION = 420;
+const PRESSABLE_CAMERA_MODEL_IDS = new Set(["luc", "manu", "remi"]);
 // Let the button's stripe press animation play out before the eject hides it.
 const SHOOT_DELAY = 520;
 
@@ -26,8 +28,10 @@ export function PolaroidCamera({
   shootNonce = 0,
 }: Props) {
   const [isEjecting, setIsEjecting] = useState(false);
+  const [isPressing, setIsPressing] = useState(false);
   const [hideActionButton, setHideActionButton] = useState(false);
   const isEjectingRef = useRef(false);
+  const pressTimeoutRef = useRef<number | null>(null);
   const timeoutRef = useRef<number | null>(null);
   const startTimeoutRef = useRef<number | null>(null);
   const lastNonceRef = useRef(shootNonce);
@@ -37,8 +41,9 @@ export function PolaroidCamera({
     `c-polaroid-camera--model-${model.id}`,
     isPassive ? "c-polaroid-camera--is-passive" : "",
     isEjecting ? "c-polaroid-camera--is-ejecting" : "",
+    isPressing ? "c-polaroid-camera--is-pressing" : "",
   ].filter(Boolean).join(" ");
-  const isActionDisabled = isDisabled || isEjecting || isPassive || hideActionButton;
+  const isActionDisabled = isDisabled || isEjecting || isPressing || isPassive || hideActionButton;
 
   const handleShoot = ({ hideButton = false } = {}) => {
     if (isDisabled || isPassive || isEjectingRef.current || !onShoot) {
@@ -51,18 +56,27 @@ export function PolaroidCamera({
     setHideActionButton(hideButton);
 
     startTimeoutRef.current = window.setTimeout(() => {
-      setIsEjecting(true);
-      // Start the motor whir exactly when the eject animation begins, so the
-      // vibration is in sync with the print sliding out (not on the earlier tap)
-      // and keeps buzzing until it's fully out and tappable.
-      playHaptic("ejectMotor", { intensity: 1 });
+      const pressDuration = hasModelPressAnimation(model.id) ? MODEL_PRESS_DURATION : 0;
 
-      timeoutRef.current = window.setTimeout(() => {
-        onShoot();
-        isEjectingRef.current = false;
-        setIsEjecting(false);
-        setHideActionButton(false);
-      }, EJECT_DURATION);
+      if (pressDuration > 0) {
+        setIsPressing(true);
+      }
+
+      pressTimeoutRef.current = window.setTimeout(() => {
+        setIsPressing(false);
+        setIsEjecting(true);
+        // Start the motor whir exactly when the eject animation begins, so the
+        // vibration is in sync with the print sliding out (not on the earlier tap)
+        // and keeps buzzing until it's fully out and tappable.
+        playHaptic("ejectMotor", { intensity: 1 });
+
+        timeoutRef.current = window.setTimeout(() => {
+          onShoot();
+          isEjectingRef.current = false;
+          setIsEjecting(false);
+          setHideActionButton(false);
+        }, EJECT_DURATION);
+      }, pressDuration);
     }, SHOOT_DELAY);
   };
 
@@ -87,6 +101,9 @@ export function PolaroidCamera({
     if (startTimeoutRef.current) {
       window.clearTimeout(startTimeoutRef.current);
     }
+    if (pressTimeoutRef.current) {
+      window.clearTimeout(pressTimeoutRef.current);
+    }
   }, []);
 
   return (
@@ -95,6 +112,7 @@ export function PolaroidCamera({
         <PolaroidCameraScene
           isEjecting={isEjecting}
           isPassive={isPassive}
+          isPressing={isPressing}
           model={model}
         />
         <button
@@ -116,4 +134,8 @@ export function PolaroidCamera({
       )}
     </div>
   );
+}
+
+function hasModelPressAnimation(modelId: string) {
+  return PRESSABLE_CAMERA_MODEL_IDS.has(modelId);
 }

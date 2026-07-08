@@ -5,10 +5,16 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraModels";
+import {
+  animateCameraModelPress,
+  createCameraModelPressRig,
+  type CameraModelPressRig,
+} from "@/features/reveal/lib/cameraModelPressRig";
 
 type CameraSceneState = {
   isEjecting: boolean;
   isPassive: boolean;
+  isPressing: boolean;
 };
 
 type EjectedPhotoSize = {
@@ -56,6 +62,8 @@ export function usePolaroidCameraScene(
     const ejectedPhoto = createEjectedPhoto(slotMask, ejectedPhotoSize);
     let frameId = 0;
     let ejectionStartedAt: number | null = null;
+    let pressStartedAt: number | null = null;
+    let pressRig: CameraModelPressRig | null = null;
     let isDisposed = false;
 
     camera.position.set(0, -0.35, 9.0);
@@ -71,6 +79,7 @@ export function usePolaroidCameraScene(
       }
 
       normalizeModel(gltf.scene, model);
+      pressRig = createCameraModelPressRig(gltf.scene, model);
       // Start hidden and let the render loop fade the model in, so it appears
       // gracefully once decoded instead of popping in after the download.
       prepareFadeIn(gltf.scene);
@@ -83,6 +92,7 @@ export function usePolaroidCameraScene(
 
     const render = () => {
       const currentState = stateRef.current;
+      pressStartedAt = resolveStartedAt(currentState.isPressing, pressStartedAt);
 
       ejectionStartedAt = animateEjectedPhoto({
         model,
@@ -91,6 +101,11 @@ export function usePolaroidCameraScene(
         startedAt: ejectionStartedAt,
         state: currentState,
       });
+      animateCameraModelPress(
+        pressRig,
+        currentState.isPressing,
+        pressStartedAt,
+      );
       animateCamera(cameraGroup, currentState);
       animateViewCamera(camera, currentState);
       fadeInModel(cameraGroup);
@@ -108,6 +123,14 @@ export function usePolaroidCameraScene(
       renderer.dispose();
     };
   }, [canvasRef, model]);
+}
+
+function resolveStartedAt(isActive: boolean, startedAt: number | null) {
+  if (!isActive) {
+    return null;
+  }
+
+  return startedAt ?? performance.now();
 }
 
 function createRenderer(canvas: HTMLCanvasElement) {

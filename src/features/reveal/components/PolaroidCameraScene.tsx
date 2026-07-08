@@ -7,13 +7,19 @@ import type { PolaroidCameraModel } from "@/features/reveal/data/polaroidCameraM
 type Props = {
   isEjecting: boolean;
   isPassive: boolean;
+  isPressing: boolean;
   model: PolaroidCameraModel;
 };
 
-export function PolaroidCameraScene({ isEjecting, isPassive, model }: Props) {
+export function PolaroidCameraScene({
+  isEjecting,
+  isPassive,
+  isPressing,
+  model,
+}: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  usePolaroidCameraScene(canvasRef, model, { isEjecting, isPassive });
+  usePolaroidCameraScene(canvasRef, model, { isEjecting, isPassive, isPressing });
 
   return (
     <div className="c-polaroid-camera__scene" aria-hidden="true">
